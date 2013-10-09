@@ -2,6 +2,8 @@ package cclib
 
 import (
 	"bytes"
+	"errors"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -33,16 +35,16 @@ func NewRequest(email string, password string, token *Token) *Request {
 		CA_CERTS}
 }
 
-func (request Request) Req(resource string, method string, data io.Reader) ([]byte, error) {
-	urlStr := request.Url() + resource
-	u, err := url.Parse(urlStr)
+func (request Request) Req(resource string, method string, data url.Values) ([]byte, error) {
+	u, err := url.ParseRequestURI(request.Url())
 	if err != nil {
 		return nil, err
 	}
-
+	u.Path = resource
+	urlStr := fmt.Sprintf("%v", u)
 	client := &http.Client{}
 
-	r, err := http.NewRequest(method, urlStr, data)
+	r, err := http.NewRequest(method, urlStr, bytes.NewBufferString(data.Encode()))
 	if err != nil {
 		return nil, err
 	}
@@ -57,10 +59,19 @@ func (request Request) Req(resource string, method string, data io.Reader) ([]by
 	if m := strings.ToUpper(method); m == "POST" || m == "PUT" {
 		r.Header.Add("Content-Type", "application/x-www-form-urlencoded")
 	}
-	r.Header.Add("Content-Length", strconv.Itoa(len(readerToStr(data))))
+	r.Header.Add("Content-Length", strconv.Itoa(len(data.Encode())))
 	r.Header.Add("Accept-Encoding", "compress, gzip")
 
 	resp, err := client.Do(r)
+	if err != nil {
+		return nil, err
+	}
+
+	err = checkResponse(resp)
+	if err != nil {
+		return nil, err
+	}
+
 	defer resp.Body.Close()
 	return ioutil.ReadAll(resp.Body)
 }
@@ -93,22 +104,29 @@ func (request Request) CaCerts() string {
 	return request.caCerts
 }
 
-func (request Request) Post(resource string, data []byte) ([]byte, error) {
-	if data == nil {
-		data = []byte{}
-	}
-	return request.Req(resource, "POST", bytes.NewReader(data))
+func (request Request) Post(resource string, data url.Values) ([]byte, error) {
+	return request.Req(resource, "POST", data)
 }
 
 func (request Request) Get(resource string) ([]byte, error) {
-	return request.Req(resource, "GET", bytes.NewReader([]byte{}))
+	return request.Req(resource, "GET", url.Values{})
 }
 
-func (request Request) Put(resource string, data []byte) ([]byte, error) {
-	if data == nil {
-		data = []byte{}
+func (request Request) Put(resource string, data url.Values) ([]byte, error) {
+	return request.Req(resource, "PUT", data)
+}
+
+func (request Request) Delete(resource string) ([]byte, error) {
+	return request.Req(resource, "DELETE", url.Values{})
+}
+
+func checkResponse(resp *http.Response) (err error) {
+	switch resp.StatusCode {
+	case 200, 201, 204:
+		return nil
+	default:
+		return errors.New(resp.Status)
 	}
-	return request.Req(resource, "PUT", bytes.NewReader(data))
 }
 
 func readerToStr(ir io.Reader) string {

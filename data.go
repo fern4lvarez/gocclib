@@ -50,7 +50,7 @@ type App struct {
 	repository   Repository
 	owner        Owner
 	name         Name
-	ty           Type
+	typ          Type
 	invitations  Invitations
 	deployments  Deployments
 	dateCreated  DateCreated

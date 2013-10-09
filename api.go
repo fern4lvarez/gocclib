@@ -3,6 +3,7 @@ package cclib
 import (
 	"errors"
 	"fmt"
+	"net/url"
 )
 
 type API struct {
@@ -34,8 +35,7 @@ func (api *API) CreateToken(email string, password string) (err error) {
 	}
 
 	var token Token
-	err = token.Decode(content)
-	if err != nil {
+	if err = token.Decode(content); err != nil {
 		return err
 	}
 
@@ -67,13 +67,71 @@ func (api API) Token() *Token {
 	return api.token
 }
 
+/*
+	Applications
+*/
+func (api *API) CreateApp(appName, appType, repositoryType, buildpackURL string) (interface{}, error) {
+	app := url.Values{}
+	app.Add("name", appName)
+	app.Add("type", appType)
+	app.Add("repository_type", repositoryType)
+
+	if buildpackURL != "" {
+		app.Add("buildpack_url", buildpackURL)
+	}
+
+	return api.postRequest("/app/", app)
+}
+
 func (api *API) ReadApps() (interface{}, error) {
+	return api.getRequest("/app/")
+}
+
+func (api *API) ReadApp(appName string) (interface{}, error) {
+	return api.getRequest(fmt.Sprintf("/app/%s/", appName))
+}
+
+func (api *API) DeleteApp(appName string) (interface{}, error) {
+	return api.deleteRequest(fmt.Sprintf("/app/%s/", appName))
+}
+
+/*
+	Deployments
+*/
+func (api *API) CreateDeployment(appName, depName, stack string) (interface{}, error) {
+	dep := url.Values{}
+	if depName != "" {
+		dep.Add("name", depName)
+	}
+
+	if stack != "" {
+		dep.Add("stack", stack)
+	}
+
+	return api.postRequest(fmt.Sprintf("/app/%s/deployment/", appName), dep)
+}
+
+func (api *API) ReadDeployment(appName, depName string) (interface{}, error) {
+	return api.getRequest(fmt.Sprintf("/app/%s/deployment/%s/", appName, depName))
+}
+
+func (api *API) ReadDeploymentUsers(appName, depName string) (interface{}, error) {
+	return api.getRequest(fmt.Sprintf("/app/%s/deployment/%s/user/", appName, depName))
+}
+
+func (api *API) DeleteDeployment(appName, depName string) (interface{}, error) {
+	return api.deleteRequest(fmt.Sprintf("/app/%s/deployment/%s/", appName, depName))
+}
+
+/*
+	Request wrappers
+*/
+func (api *API) getRequest(resource string) (interface{}, error) {
 	err := api.RequiresToken()
 	if err != nil {
 		return nil, err
 	}
 
-	resource := "/app/"
 	request := NewRequest("", "", api.Token())
 
 	content, err := request.Get(resource)
@@ -84,16 +142,31 @@ func (api *API) ReadApps() (interface{}, error) {
 	return decodeContent(content)
 }
 
-func (api *API) ReadApp(name string) (interface{}, error) {
+func (api *API) postRequest(resource string, data url.Values) (interface{}, error) {
 	err := api.RequiresToken()
 	if err != nil {
 		return nil, err
 	}
 
-	resource := fmt.Sprintf("/app/%s/", name)
 	request := NewRequest("", "", api.Token())
 
-	content, err := request.Get(resource)
+	content, err := request.Post(resource, data)
+	if err != nil {
+		return nil, err
+	}
+
+	return decodeContent(content)
+}
+
+func (api *API) deleteRequest(resource string) (interface{}, error) {
+	err := api.RequiresToken()
+	if err != nil {
+		return nil, err
+	}
+
+	request := NewRequest("", "", api.Token())
+
+	content, err := request.Delete(resource)
 	if err != nil {
 		return nil, err
 	}
