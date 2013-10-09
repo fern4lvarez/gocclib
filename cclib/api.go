@@ -178,8 +178,7 @@ func (api *API) DeleteAlias(appName, aliasName, depName string) error {
 	Request wrappers
 */
 func (api *API) getRequest(resource string) (interface{}, error) {
-	err := api.RequiresToken()
-	if err != nil {
+	if err := api.RequiresToken(); err != nil {
 		return nil, err
 	}
 
@@ -194,8 +193,7 @@ func (api *API) getRequest(resource string) (interface{}, error) {
 }
 
 func (api *API) postRequest(resource string, data url.Values) (interface{}, error) {
-	err := api.RequiresToken()
-	if err != nil {
+	if err := api.RequiresToken(); err != nil {
 		return nil, err
 	}
 
@@ -210,8 +208,7 @@ func (api *API) postRequest(resource string, data url.Values) (interface{}, erro
 }
 
 func (api *API) putRequest(resource string, data url.Values) (interface{}, error) {
-	err := api.RequiresToken()
-	if err != nil {
+	if err := api.RequiresToken(); err != nil {
 		return nil, err
 	}
 
@@ -226,8 +223,7 @@ func (api *API) putRequest(resource string, data url.Values) (interface{}, error
 }
 
 func (api *API) deleteRequest(resource string) error {
-	err := api.RequiresToken()
-	if err != nil {
+	if err := api.RequiresToken(); err != nil {
 		return err
 	}
 
