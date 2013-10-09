@@ -67,8 +67,7 @@ func (request Request) Req(resource string, method string, data url.Values) ([]b
 		return nil, err
 	}
 
-	err = checkResponse(resp)
-	if err != nil {
+	if err = checkResponse(resp); err != nil {
 		return nil, err
 	}
 

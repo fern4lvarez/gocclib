@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"net/url"
+	"strconv"
 )
 
 type API struct {
@@ -91,7 +92,7 @@ func (api *API) ReadApp(appName string) (interface{}, error) {
 	return api.getRequest(fmt.Sprintf("/app/%s/", appName))
 }
 
-func (api *API) DeleteApp(appName string) (interface{}, error) {
+func (api *API) DeleteApp(appName string) error {
 	return api.deleteRequest(fmt.Sprintf("/app/%s/", appName))
 }
 
@@ -119,8 +120,58 @@ func (api *API) ReadDeploymentUsers(appName, depName string) (interface{}, error
 	return api.getRequest(fmt.Sprintf("/app/%s/deployment/%s/user/", appName, depName))
 }
 
-func (api *API) DeleteDeployment(appName, depName string) (interface{}, error) {
+func (api *API) UpdateDeployment(appName, depName, version, billingAccount, stack string, containers, size int) (interface{}, error) {
+	if depName == "" {
+		depName = "default"
+	}
+
+	dep := url.Values{}
+	if version != "" {
+		dep.Add("version", version)
+	}
+	if billingAccount != "" {
+		dep.Add("billing_account", billingAccount)
+	}
+	if stack != "" {
+		dep.Add("stack", stack)
+	}
+	if containers > 0 {
+		dep.Add("min_boxes", strconv.Itoa(containers))
+	}
+	if size > 0 {
+		dep.Add("max_boxes", strconv.Itoa(size))
+	}
+	if stack != "" {
+		dep.Add("stack", stack)
+	}
+
+	return api.putRequest(fmt.Sprintf("/app/%s/deployment/%s/", appName, depName), dep)
+}
+
+func (api *API) DeleteDeployment(appName, depName string) error {
 	return api.deleteRequest(fmt.Sprintf("/app/%s/deployment/%s/", appName, depName))
+}
+
+/*
+	Aliases
+*/
+func (api *API) CreateAlias(appName, aliasName, depName string) (interface{}, error) {
+	alias := url.Values{}
+	alias.Add("name", aliasName)
+
+	return api.postRequest(fmt.Sprintf("/app/%s/deployment/%s/alias/", appName, depName), alias)
+}
+
+func (api *API) ReadAliases(appName, depName string) (interface{}, error) {
+	return api.getRequest(fmt.Sprintf("/app/%s/deployment/%s/alias/", appName, depName))
+}
+
+func (api *API) ReadAlias(appName, aliasName, depName string) (interface{}, error) {
+	return api.getRequest(fmt.Sprintf("/app/%s/deployment/%s/alias/%s/", appName, depName, aliasName))
+}
+
+func (api *API) DeleteAlias(appName, aliasName, depName string) error {
+	return api.deleteRequest(fmt.Sprintf("/app/%s/deployment/%s/alias/%s/", appName, depName, aliasName))
 }
 
 /*
@@ -158,7 +209,7 @@ func (api *API) postRequest(resource string, data url.Values) (interface{}, erro
 	return decodeContent(content)
 }
 
-func (api *API) deleteRequest(resource string) (interface{}, error) {
+func (api *API) putRequest(resource string, data url.Values) (interface{}, error) {
 	err := api.RequiresToken()
 	if err != nil {
 		return nil, err
@@ -166,10 +217,27 @@ func (api *API) deleteRequest(resource string) (interface{}, error) {
 
 	request := NewRequest("", "", api.Token())
 
-	content, err := request.Delete(resource)
+	content, err := request.Put(resource, data)
 	if err != nil {
 		return nil, err
 	}
 
 	return decodeContent(content)
+}
+
+func (api *API) deleteRequest(resource string) error {
+	err := api.RequiresToken()
+	if err != nil {
+		return err
+	}
+
+	request := NewRequest("", "", api.Token())
+
+	content, err := request.Delete(resource)
+	if err != nil {
+		return err
+	}
+
+	_, err = decodeContent(content)
+	return err
 }
