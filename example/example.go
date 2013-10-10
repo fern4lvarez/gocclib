@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	cc "github.com/fern4lvarez/gocclib"
+	cc "github.com/fern4lvarez/gocclib/cclib"
 )
 
 func main() {

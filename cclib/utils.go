@@ -8,6 +8,8 @@ import (
 	"unicode/utf8"
 )
 
+var msgFail = "%v function fails. Expects %v, returns %v"
+
 func decodeContent(content []byte) (data interface{}, err error) {
 	if utf8.Valid(content) {
 		json.Unmarshal(content, &data)

@@ -6,15 +6,15 @@ import (
 
 type Token map[string]string
 
-func (t *Token) Decode(b []byte) (err error) {
-	return json.Unmarshal(b, &t)
+func (token *Token) Decode(b []byte) (err error) {
+	return json.Unmarshal(b, &token)
 }
 
-func (t Token) Encode() (b []byte, err error) {
-	b, err = json.Marshal(t)
+func (token Token) Encode() (b []byte, err error) {
+	b, err = json.Marshal(token)
 	return
 }
 
-func (t Token) Key() string {
-	return t["token"]
+func (token Token) Key() string {
+	return token["token"]
 }
