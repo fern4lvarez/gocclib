@@ -7,10 +7,10 @@ import (
 
 func TestDecode(t *testing.T) {
 	// Given
-	token := Token{}
 	b := []byte(`{"token":"abcdefghijklmnopqrstuvxyz"}`)
 
 	// When
+	token := Token{}
 	err := token.Decode(b)
 
 	// Then
