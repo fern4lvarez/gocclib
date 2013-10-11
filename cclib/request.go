@@ -55,7 +55,7 @@ func (request Request) Req(resource string, method string, data url.Values) ([]b
 		r.SetBasicAuth(request.Email(), request.Password())
 	}
 	r.Header.Add("Host", u.Host)
-	r.Header.Add("User-Agent", "gocclib/0.0.1")
+	r.Header.Add("User-Agent", "gocclib/"+Version())
 	if m := strings.ToUpper(method); m == "POST" || m == "PUT" {
 		r.Header.Add("Content-Type", "application/x-www-form-urlencoded")
 	}
