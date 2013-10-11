@@ -18,7 +18,7 @@ func NewAPI() *API {
 }
 
 func NewAPIToken(t *Token) *API {
-	return &API{"", "", t}
+	return &API{"", API_URL, t}
 }
 
 func (api API) RequiresToken() (e error) {
