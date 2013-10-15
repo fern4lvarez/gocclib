@@ -502,6 +502,79 @@ func (api *API) DeleteAddon(appName, depName, addonName string) error {
 }
 
 /*
+	App Users
+*/
+
+// CreateAppUser adds an user to an application having:
+// * Application name
+// * User email
+// * User role (optional)
+//
+// Returns an interface with just created user details
+// and an error if request does not success.
+func (api *API) CreateAppUser(appName, userEmail, role string) (interface{}, error) {
+	user := url.Values{}
+	user.Add("email", userEmail)
+
+	if role != "" {
+		user.Add("role", role)
+	}
+
+	return api.postRequest(fmt.Sprintf("/app/%s/user/", appName), user)
+}
+
+// ReadAppUsers reads all application's users having:
+// * Application name
+//
+// Returns an interface with users details
+// and an error if request does not success.
+func (api *API) ReadAppUsers(appName string) (interface{}, error) {
+	return api.getRequest(fmt.Sprintf("/app/%s/user/", appName))
+}
+
+// DeleteAppUser removes an user from an application having:
+// * Application name
+// * User name
+//
+// Returns an error if request does not success.
+func (api *API) DeleteAppUser(appName, userName string) error {
+	return api.deleteRequest(fmt.Sprintf("/app/%s/user/%s/", appName, userName))
+}
+
+/*
+	Deployment Users
+*/
+
+// CreateDeploymentUser adds an user to a deployment having:
+// * Application name
+// * Deployment name
+// * User email
+// * User role (optional)
+//
+// Returns an interface with just created user details
+// and an error if request does not success.
+func (api *API) CreateDeploymentUser(appName, depName, userEmail, role string) (interface{}, error) {
+	user := url.Values{}
+	user.Add("email", userEmail)
+
+	if role != "" {
+		user.Add("role", role)
+	}
+
+	return api.postRequest(fmt.Sprintf("/app/%s/deployment/%s/user/", appName, depName), user)
+}
+
+// DeleteDeploymentUser removes an user from a deployment having:
+// * Application name
+// * Deployment name
+// * User name
+//
+// Returns an error if request does not success.
+func (api *API) DeleteDeploymentUser(appName, depName, userName string) error {
+	return api.deleteRequest(fmt.Sprintf("/app/%s/deployment/%s/user/%s/", appName, depName, userName))
+}
+
+/*
 	Request wrappers
 */
 
