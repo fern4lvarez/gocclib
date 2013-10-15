@@ -4,7 +4,9 @@ import (
 	"bytes"
 	"compress/gzip"
 	"encoding/json"
+	"errors"
 	"io"
+	"net/http"
 	"unicode/utf8"
 )
 
@@ -28,4 +30,19 @@ func decodeContent(content []byte) (data interface{}, err error) {
 	}
 
 	return
+}
+
+func checkResponse(resp *http.Response) (err error) {
+	switch resp.StatusCode {
+	case 200, 201, 204:
+		return nil
+	default:
+		return errors.New(resp.Status)
+	}
+}
+
+func readerToStr(ir io.Reader) string {
+	buf := new(bytes.Buffer)
+	buf.ReadFrom(ir)
+	return buf.String()
 }

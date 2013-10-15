@@ -2,9 +2,7 @@ package cclib
 
 import (
 	"bytes"
-	"errors"
 	"fmt"
-	"io"
 	"io/ioutil"
 	"net/http"
 	"net/url"
@@ -117,19 +115,4 @@ func (request Request) Put(resource string, data url.Values) ([]byte, error) {
 
 func (request Request) Delete(resource string) ([]byte, error) {
 	return request.Req(resource, "DELETE", url.Values{})
-}
-
-func checkResponse(resp *http.Response) (err error) {
-	switch resp.StatusCode {
-	case 200, 201, 204:
-		return nil
-	default:
-		return errors.New(resp.Status)
-	}
-}
-
-func readerToStr(ir io.Reader) string {
-	buf := new(bytes.Buffer)
-	buf.ReadFrom(ir)
-	return buf.String()
 }
