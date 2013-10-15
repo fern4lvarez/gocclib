@@ -1,3 +1,27 @@
+/*
+gocclib is a library for accessing the cloudControl API using Go.
+
+Basic usage example:
+
+```
+package main
+
+import (
+	"os"
+
+	cc "github.com/fern4lvarez/gocclib/cclib"
+)
+
+func main() {
+	api := cc.NewAPI()
+	err := api.CreateToken("user@email.org", "password")
+	if err != nil {
+		os.Exit(0)
+	}
+	...
+}
+```
+*/
 package cclib
 
 import (
