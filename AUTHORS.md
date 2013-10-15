@@ -1,1 +1,1 @@
-[Fernando Álvarez](http://github.com/fern4lvarez) <alvarez.calleja.fernando@gmail.com>
+* [Fernando Álvarez](http://github.com/fern4lvarez) - <alvarez.calleja.fernando@gmail.com>
