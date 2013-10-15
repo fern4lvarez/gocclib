@@ -371,6 +371,55 @@ func (api *API) DeleteWorker(appName, depName, workerId string) error {
 }
 
 /*
+	Cronjobs
+*/
+
+// CreateCronjob adds a cronjob to a deployment having:
+// * Application name
+// * Deployment name
+// * Cronjob URL
+//
+// Returns an interface with just created cronjob details
+// and an error if request does not success.
+func (api *API) CreateCronjob(appName, depName, urlJob string) (interface{}, error) {
+	cronjob := url.Values{}
+	cronjob.Add("url", urlJob)
+
+	return api.postRequest(fmt.Sprintf("/app/%s/deployment/%s/cron/", appName, depName), cronjob)
+}
+
+// ReadCronjobs reads all deployment's cronjobs having:
+// * Application name
+// * Deployment name
+//
+// Returns an interface with cronjobs details
+// and an error if request does not success.
+func (api *API) ReadCronjobs(appName, depName string) (interface{}, error) {
+	return api.getRequest(fmt.Sprintf("/app/%s/deployment/%s/cron/", appName, depName))
+}
+
+// ReadCronjob reads a deployment's cronjob having:
+// * Application name
+// * Deployment name
+// * Cronjob ID
+//
+// Returns an interface with worker details
+// and an error if request does not success.
+func (api *API) ReadCronjob(appName, depName, cronjobId string) (interface{}, error) {
+	return api.getRequest(fmt.Sprintf("/app/%s/deployment/%s/cron/%s/", appName, depName, cronjobId))
+}
+
+// DeleteCronjob removes a cronjob from a deployment having:
+// * Application name
+// * Deployment name
+// * Cronjob ID
+//
+// Returns an error if request does not success.
+func (api *API) DeleteCronjob(appName, depName, cronjobId string) error {
+	return api.deleteRequest(fmt.Sprintf("/app/%s/deployment/%s/cron/%s/", appName, depName, cronjobId))
+}
+
+/*
 	Request wrappers
 */
 
