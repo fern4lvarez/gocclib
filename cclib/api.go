@@ -4,24 +4,23 @@ Please read the API documentation: https://api.cloudcontrol.com/doc/
 
 Basic usage example:
 
-```
-package main
+	package main
 
-import (
-	"os"
+	import (
+		"os"
 
-	cc "github.com/fern4lvarez/gocclib/cclib"
-)
+		cc "github.com/fern4lvarez/gocclib/cclib"
+	)
 
-func main() {
-	api := cc.NewAPI()
-	err := api.CreateToken("user@email.org", "password")
-	if err != nil {
-		os.Exit(0)
+	func main() {
+		api := cc.NewAPI()
+		err := api.CreateToken("user@email.org", "password")
+		if err != nil {
+			os.Exit(0)
+		}
+		...
 	}
-	...
-}
-```
+
 */
 package cclib
 
