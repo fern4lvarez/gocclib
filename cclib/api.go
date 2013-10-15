@@ -130,7 +130,7 @@ func (api API) Token() *Token {
 // * Repository type (git, bzr)
 // * Buildpack URL (for custom application type)
 //
-// Returns an interface object with just created application information
+// Returns an interface with just created application details
 // and an error if request does not success.
 func (api *API) CreateApp(appName, appType, repositoryType, buildpackURL string) (interface{}, error) {
 	app := url.Values{}
@@ -147,7 +147,7 @@ func (api *API) CreateApp(appName, appType, repositoryType, buildpackURL string)
 
 // ReadApps reads applications of current user.
 //
-// Returns an interface object with applications information
+// Returns an interface object with applications details
 // and an error if request does not success.
 func (api *API) ReadApps() (interface{}, error) {
 	return api.getRequest("/app/")
@@ -156,7 +156,7 @@ func (api *API) ReadApps() (interface{}, error) {
 // ReadApp reads an application having:
 // * Application name
 //
-// Returns an interface object with application information
+// Returns an interface with application details
 // and an error if request does not success.
 func (api *API) ReadApp(appName string) (interface{}, error) {
 	return api.getRequest(fmt.Sprintf("/app/%s/", appName))
@@ -179,7 +179,7 @@ func (api *API) DeleteApp(appName string) error {
 // * Deployment name
 // * Stack name (Optional)
 //
-// Returns an interface object with just created deployment information
+// Returns an interface with just created deployment details
 // and an error if request does not success.
 func (api *API) CreateDeployment(appName, depName, stack string) (interface{}, error) {
 	dep := url.Values{}
@@ -198,7 +198,7 @@ func (api *API) CreateDeployment(appName, depName, stack string) (interface{}, e
 // * Application name
 // * Deployment name
 //
-// Returns an interface object with deployment information
+// Returns an interface with deployment details
 // and an error if request does not success.
 func (api *API) ReadDeployment(appName, depName string) (interface{}, error) {
 	return api.getRequest(fmt.Sprintf("/app/%s/deployment/%s/", appName, depName))
@@ -208,7 +208,7 @@ func (api *API) ReadDeployment(appName, depName string) (interface{}, error) {
 // * Application name
 // * Deployment name
 //
-// Returns an interface object with deployment's users information
+// Returns an interface with deployment's users details
 // and an error if request does not success.
 func (api *API) ReadDeploymentUsers(appName, depName string) (interface{}, error) {
 	return api.getRequest(fmt.Sprintf("/app/%s/deployment/%s/user/", appName, depName))
@@ -223,7 +223,7 @@ func (api *API) ReadDeploymentUsers(appName, depName string) (interface{}, error
 // * Number of containers constantly spawned: from 1 to 8
 // * Size of containers: from 1 (128MB) to 8 (1024MB)
 //
-// Returns an interface object with the updated deployment information
+// Returns an interface with the updated deployment details
 // and an error if request does not success.
 func (api *API) UpdateDeployment(appName, depName, version, billingAccount, stack string, containers, size int) (interface{}, error) {
 	if depName == "" {
@@ -271,7 +271,7 @@ func (api *API) DeleteDeployment(appName, depName string) error {
 // * Alias name
 // * Deployment name
 //
-// Returns an interface object with just created alias information
+// Returns an interface with just created alias details
 // and an error if request does not success.
 func (api *API) CreateAlias(appName, aliasName, depName string) (interface{}, error) {
 	alias := url.Values{}
@@ -284,7 +284,7 @@ func (api *API) CreateAlias(appName, aliasName, depName string) (interface{}, er
 // * Application name
 // * Deployment name
 //
-// Returns an interface object with aliases information
+// Returns an interface with aliases details
 // and an error if request does not success.
 func (api *API) ReadAliases(appName, depName string) (interface{}, error) {
 	return api.getRequest(fmt.Sprintf("/app/%s/deployment/%s/alias/", appName, depName))
@@ -295,13 +295,13 @@ func (api *API) ReadAliases(appName, depName string) (interface{}, error) {
 // * Alias name
 // * Deployment name
 //
-// Returns an interface object with aliase information
+// Returns an interface with alias details
 // and an error if request does not success.
 func (api *API) ReadAlias(appName, aliasName, depName string) (interface{}, error) {
 	return api.getRequest(fmt.Sprintf("/app/%s/deployment/%s/alias/%s/", appName, depName, aliasName))
 }
 
-// DeleteAlias deletes a deployment's alias having:
+// DeleteAlias removes an alias from a deployment having:
 // * Application name
 // * Alias name
 // * Deployment name
@@ -309,6 +309,65 @@ func (api *API) ReadAlias(appName, aliasName, depName string) (interface{}, erro
 // Returns an error if request does not success.
 func (api *API) DeleteAlias(appName, aliasName, depName string) error {
 	return api.deleteRequest(fmt.Sprintf("/app/%s/deployment/%s/alias/%s/", appName, depName, aliasName))
+}
+
+/*
+	Workers
+*/
+
+// CreateWorker executes a worker to a deployment having:
+// * Application name
+// * Deployment name
+// * Worker command
+// * Parameters, optional
+// * Size, optional
+//
+// Returns an interface with just executed worker details
+// and an error if request does not success.
+func (api *API) CreateWorker(appName, depName, command, params, size string) (interface{}, error) {
+	worker := url.Values{}
+	worker.Add("command", command)
+
+	if params != "" {
+		worker.Add("params", params)
+	}
+
+	if size != "" {
+		worker.Add("size", size)
+	}
+
+	return api.postRequest(fmt.Sprintf("/app/%s/deployment/%s/worker/", appName, depName), worker)
+}
+
+// ReadWorkers reads all deployment's workers having:
+// * Application name
+// * Deployment name
+//
+// Returns an interface with workers details
+// and an error if request does not success.
+func (api *API) ReadWorkers(appName, depName string) (interface{}, error) {
+	return api.getRequest(fmt.Sprintf("/app/%s/deployment/%s/worker/", appName, depName))
+}
+
+// ReadWorker reads a deployment's worker having:
+// * Application name
+// * Deployment name
+// * Worker ID
+//
+// Returns an interface with worker details
+// and an error if request does not success.
+func (api *API) ReadWorker(appName, depName, workerId string) (interface{}, error) {
+	return api.getRequest(fmt.Sprintf("/app/%s/deployment/%s/worker/%s/", appName, depName, workerId))
+}
+
+// DeleteWorker removes a worker from a deployment having:
+// * Application name
+// * Deployment name
+// * Worker ID
+//
+// Returns an error if request does not success.
+func (api *API) DeleteWorker(appName, depName, workerId string) error {
+	return api.deleteRequest(fmt.Sprintf("/app/%s/deployment/%s/worker/%s/", appName, depName, workerId))
 }
 
 /*

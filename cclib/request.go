@@ -33,7 +33,51 @@ func NewRequest(email string, password string, token *Token) *Request {
 		CA_CERTS}
 }
 
-func (request Request) Req(resource string, method string, data url.Values) ([]byte, error) {
+func (request Request) Email() string {
+	return request.email
+}
+
+func (request Request) Password() string {
+	return request.password
+}
+
+func (request Request) Token() *Token {
+	return request.token
+}
+
+func (request Request) Cache() string {
+	return request.cache
+}
+
+func (request Request) Url() string {
+	return request.url
+}
+
+func (request Request) DisableSSLCheck() bool {
+	return request.disableSSLCheck
+}
+
+func (request Request) CaCerts() string {
+	return request.caCerts
+}
+
+func (request Request) Post(resource string, data url.Values) ([]byte, error) {
+	return request.do(resource, "POST", data)
+}
+
+func (request Request) Get(resource string) ([]byte, error) {
+	return request.do(resource, "GET", url.Values{})
+}
+
+func (request Request) Put(resource string, data url.Values) ([]byte, error) {
+	return request.do(resource, "PUT", data)
+}
+
+func (request Request) Delete(resource string) ([]byte, error) {
+	return request.do(resource, "DELETE", url.Values{})
+}
+
+func (request Request) do(resource string, method string, data url.Values) ([]byte, error) {
 	u, err := url.ParseRequestURI(request.Url())
 	if err != nil {
 		return nil, err
@@ -71,48 +115,4 @@ func (request Request) Req(resource string, method string, data url.Values) ([]b
 
 	defer resp.Body.Close()
 	return ioutil.ReadAll(resp.Body)
-}
-
-func (request Request) Email() string {
-	return request.email
-}
-
-func (request Request) Password() string {
-	return request.password
-}
-
-func (request Request) Token() *Token {
-	return request.token
-}
-
-func (request Request) Cache() string {
-	return request.cache
-}
-
-func (request Request) Url() string {
-	return request.url
-}
-
-func (request Request) DisableSSLCheck() bool {
-	return request.disableSSLCheck
-}
-
-func (request Request) CaCerts() string {
-	return request.caCerts
-}
-
-func (request Request) Post(resource string, data url.Values) ([]byte, error) {
-	return request.Req(resource, "POST", data)
-}
-
-func (request Request) Get(resource string) ([]byte, error) {
-	return request.Req(resource, "GET", url.Values{})
-}
-
-func (request Request) Put(resource string, data url.Values) ([]byte, error) {
-	return request.Req(resource, "PUT", data)
-}
-
-func (request Request) Delete(resource string) ([]byte, error) {
-	return request.Req(resource, "DELETE", url.Values{})
 }
