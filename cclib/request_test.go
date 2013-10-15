@@ -9,7 +9,7 @@ import (
 	"testing"
 )
 
-func TestNewRequest(t *testing.T) {
+func TestRequest(t *testing.T) {
 	// Given
 	email := "user@example.com"
 	password := "password"
