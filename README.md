@@ -24,4 +24,4 @@ $ go test -v ./...
 
 ##License
 ----------
-gocclib is MIT licensed.
+gocclib is Apache licensed.
