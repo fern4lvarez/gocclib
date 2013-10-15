@@ -52,6 +52,15 @@ func (api API) RequiresToken() (e error) {
 	return
 }
 
+func (api *API) CreateTokenFromFile(filepath string) (err error) {
+	email, password, err := readCredentialsFile(filepath)
+	if err != nil {
+		return err
+	}
+
+	return api.CreateToken(email, password)
+}
+
 func (api *API) CreateToken(email string, password string) (err error) {
 	request := NewRequest(email, password, nil)
 	content, err := request.Post("/token/", nil)

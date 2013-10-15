@@ -1,12 +1,14 @@
 package cclib
 
 import (
+	"bufio"
 	"bytes"
 	"compress/gzip"
 	"encoding/json"
 	"errors"
 	"io"
 	"net/http"
+	"os"
 	"unicode/utf8"
 )
 
@@ -45,4 +47,36 @@ func readerToStr(ir io.Reader) string {
 	buf := new(bytes.Buffer)
 	buf.ReadFrom(ir)
 	return buf.String()
+}
+
+func readCredentialsFile(filepath string) (email, password string, err error) {
+	f, err := os.Open(filepath)
+	if err != nil {
+		return "", "", err
+	}
+
+	scanner := bufio.NewScanner(f)
+	lines := 0
+	for scanner.Scan() {
+		switch lines {
+		case 0:
+			email = scanner.Text()
+			lines++
+		case 1:
+			password = scanner.Text()
+			lines++
+		case 2:
+			break
+		}
+	}
+
+	if lines != 2 {
+		return "", "", errors.New("Not lines enough on credentials file.")
+	}
+
+	if err := scanner.Err(); err != nil {
+		return "", "", err
+	}
+
+	return
 }

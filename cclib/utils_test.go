@@ -5,7 +5,9 @@ import (
 	"compress/gzip"
 	"encoding/json"
 	"errors"
+	"io/ioutil"
 	"net/http"
+	"os"
 	"reflect"
 	"testing"
 )
@@ -109,4 +111,39 @@ func TestReaderToStr(t *testing.T) {
 	if rts != s {
 		t.Errorf(msgFail, "readerToStr", s, rts)
 	}
+}
+
+func TestReadCredentialsFile(t *testing.T) {
+	// Given
+	ioutil.WriteFile(".ccfile1", []byte("email\npassword\n"), 0644)
+	ioutil.WriteFile(".ccfile2", []byte("email"), 0644)
+
+	// When
+	email1, password1, err1 := readCredentialsFile(".ccfile1")
+	email2, password2, err2 := readCredentialsFile(".ccfile2")
+
+	// Then
+	if err1 != nil {
+		t.Errorf(msgFail, "readCredentialsFile", nil, err1)
+	}
+	if email1 != "email" {
+		t.Errorf(msgFail, "readCredentialsFile", "email", email1)
+	}
+	if password1 != "password" {
+		t.Errorf(msgFail, "readCredentialsFile", "password", password1)
+	}
+
+	if err2 == nil {
+		t.Errorf(msgFail, "readCredentialsFile", errors.New("Not lines enough on credentials file."), err2)
+	}
+	if email2 != "" {
+		t.Errorf(msgFail, "readCredentialsFile", "", email2)
+	}
+	if password2 != "" {
+		t.Errorf(msgFail, "readCredentialsFile", "", password2)
+	}
+
+	// After
+	os.RemoveAll(".ccfile1")
+	os.RemoveAll(".ccfile2")
 }
