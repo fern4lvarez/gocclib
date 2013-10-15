@@ -26,6 +26,7 @@ func main() {
 package cclib
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"net/url"
@@ -417,6 +418,87 @@ func (api *API) ReadCronjob(appName, depName, cronjobId string) (interface{}, er
 // Returns an error if request does not success.
 func (api *API) DeleteCronjob(appName, depName, cronjobId string) error {
 	return api.deleteRequest(fmt.Sprintf("/app/%s/deployment/%s/cron/%s/", appName, depName, cronjobId))
+}
+
+/*
+	Addons
+*/
+
+// CreateAddon creates an addon having:
+// * Application name
+// * Deployment name
+// * Addon name
+// * Options as a pointer to a map of string to strings (optional)
+//
+// Returns an interface with just created addon details
+// and an error if request does not success.
+func (api *API) CreateAddon(appName, depName, addonName string, options *map[string]string) (interface{}, error) {
+	addon := url.Values{}
+	addon.Add("addon", addonName)
+
+	o, err := json.Marshal(&options)
+	if err != nil {
+		return nil, err
+	}
+
+	addon.Add("options", string(o))
+
+	return api.postRequest(fmt.Sprintf("/app/%s/deployment/%s/addon/", appName, depName), addon)
+}
+
+// ReadCronjobs reads all deployment's addons having:
+// * Application name
+// * Deployment name
+//
+// If Application and Deployment names are empty,
+// it returns of available addons.
+// Otherwise it returns an interface with deployment's addons details
+// and an error if request does not success.
+func (api *API) ReadAddons(appName, depName string) (interface{}, error) {
+	if appName != "" && depName != "" {
+		return api.getRequest(fmt.Sprintf("/app/%s/deployment/%s/addon/", appName, depName))
+	}
+	return api.getRequest("/addon/")
+}
+
+// ReadAddon reads a deployment's addon having:
+// * Application name
+// * Deployment name
+// * Addon name
+//
+// Returns an interface with addon details
+// and an error if request does not success.
+func (api *API) ReadAddon(appName, depName, addonName string) (interface{}, error) {
+	return api.getRequest(fmt.Sprintf("/app/%s/deployment/%s/addon/%s/", appName, depName, addonName))
+}
+
+// UpdateAddon updates addon having:
+// * Application name
+// * Deployment name
+// * Current Addon name
+// * New Addon name to update to
+//
+// Returns an interface with the updated addon details
+// and an error if request does not success.
+func (api *API) UpdateAddon(appName, depName, addonName, addonNameToUpdateTo string) (interface{}, error) {
+	if depName == "" {
+		depName = "default"
+	}
+
+	addon := url.Values{}
+	addon.Add("addon", addonNameToUpdateTo)
+
+	return api.putRequest(fmt.Sprintf("/app/%s/deployment/%s/addon/%s/", appName, depName, addonName), addon)
+}
+
+// DeleteAddon deletes an addon having:
+// * Application name
+// * Deployment name
+// * Addon name
+//
+// Returns an error if request does not success.
+func (api *API) DeleteAddon(appName, depName, addonName string) error {
+	return api.deleteRequest(fmt.Sprintf("/app/%s/deployment/%s/addon/%s/", appName, depName, addonName))
 }
 
 /*
