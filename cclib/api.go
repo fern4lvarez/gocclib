@@ -125,9 +125,13 @@ func (api API) Token() *Token {
 */
 
 // CreateApp creates an application having:
+//
 // * Application name
+//
 // * Application type (php, python, ruby, java, nodejs, custom)
+//
 // * Repository type (git, bzr)
+//
 // * Buildpack URL (for custom application type)
 //
 // Returns an interface with just created application details
@@ -154,6 +158,7 @@ func (api *API) ReadApps() (interface{}, error) {
 }
 
 // ReadApp reads an application having:
+//
 // * Application name
 //
 // Returns an interface with application details
@@ -163,6 +168,7 @@ func (api *API) ReadApp(appName string) (interface{}, error) {
 }
 
 // DeleteApp deletes an application having:
+//
 // * Application name
 //
 // Returns an error if request does not success.
@@ -175,8 +181,11 @@ func (api *API) DeleteApp(appName string) error {
 */
 
 // CreateDeployment creates a deployment having:
+//
 // * Application name
+//
 // * Deployment name
+//
 // * Stack name (Optional)
 //
 // Returns an interface with just created deployment details
@@ -195,7 +204,9 @@ func (api *API) CreateDeployment(appName, depName, stack string) (interface{}, e
 }
 
 // ReadDeployment reads a deployment having:
+//
 // * Application name
+//
 // * Deployment name
 //
 // Returns an interface with deployment details
@@ -205,7 +216,9 @@ func (api *API) ReadDeployment(appName, depName string) (interface{}, error) {
 }
 
 // ReadDeployment reads deployment's users having:
+//
 // * Application name
+//
 // * Deployment name
 //
 // Returns an interface with deployment's users details
@@ -216,11 +229,17 @@ func (api *API) ReadDeploymentUsers(appName, depName string) (interface{}, error
 
 // UpdateDeployment updates deployment having:
 // * Application name
+//
 // * Deployment name
+//
 // * Version to pull from the branch. Defaults to the last version if blank.
+//
 // * Billing account name of one of the users
+//
 // * Stack name
+//
 // * Number of containers constantly spawned: from 1 to 8
+//
 // * Size of containers: from 1 (128MB) to 8 (1024MB)
 //
 // Returns an interface with the updated deployment details
@@ -254,7 +273,9 @@ func (api *API) UpdateDeployment(appName, depName, version, billingAccount, stac
 }
 
 // DeleteDeployment deletes a deployment having:
+//
 // * Application name
+//
 // * Deployment name
 //
 // Returns an error if request does not success.
@@ -267,8 +288,11 @@ func (api *API) DeleteDeployment(appName, depName string) error {
 */
 
 // CreateAlias creates an alias having:
+//
 // * Application name
+//
 // * Alias name
+//
 // * Deployment name
 //
 // Returns an interface with just created alias details
@@ -281,7 +305,9 @@ func (api *API) CreateAlias(appName, aliasName, depName string) (interface{}, er
 }
 
 // ReadAliases reads all deployment's aliases having:
+//
 // * Application name
+//
 // * Deployment name
 //
 // Returns an interface with aliases details
@@ -291,8 +317,11 @@ func (api *API) ReadAliases(appName, depName string) (interface{}, error) {
 }
 
 // ReadAlias reads a deployment's alias having:
+//
 // * Application name
+//
 // * Alias name
+//
 // * Deployment name
 //
 // Returns an interface with alias details
@@ -302,8 +331,11 @@ func (api *API) ReadAlias(appName, aliasName, depName string) (interface{}, erro
 }
 
 // DeleteAlias removes an alias from a deployment having:
+//
 // * Application name
+//
 // * Alias name
+//
 // * Deployment name
 //
 // Returns an error if request does not success.
@@ -316,10 +348,15 @@ func (api *API) DeleteAlias(appName, aliasName, depName string) error {
 */
 
 // CreateWorker executes a worker to a deployment having:
+//
 // * Application name
+//
 // * Deployment name
+//
 // * Worker command
+//
 // * Parameters, optional
+//
 // * Size, optional
 //
 // Returns an interface with just executed worker details
@@ -340,7 +377,9 @@ func (api *API) CreateWorker(appName, depName, command, params, size string) (in
 }
 
 // ReadWorkers reads all deployment's workers having:
+//
 // * Application name
+//
 // * Deployment name
 //
 // Returns an interface with workers details
@@ -350,8 +389,11 @@ func (api *API) ReadWorkers(appName, depName string) (interface{}, error) {
 }
 
 // ReadWorker reads a deployment's worker having:
+//
 // * Application name
+//
 // * Deployment name
+//
 // * Worker ID
 //
 // Returns an interface with worker details
@@ -361,8 +403,11 @@ func (api *API) ReadWorker(appName, depName, workerId string) (interface{}, erro
 }
 
 // DeleteWorker removes a worker from a deployment having:
+//
 // * Application name
+//
 // * Deployment name
+//
 // * Worker ID
 //
 // Returns an error if request does not success.
@@ -375,8 +420,11 @@ func (api *API) DeleteWorker(appName, depName, workerId string) error {
 */
 
 // CreateCronjob adds a cronjob to a deployment having:
+//
 // * Application name
+//
 // * Deployment name
+//
 // * Cronjob URL
 //
 // Returns an interface with just created cronjob details
@@ -389,7 +437,9 @@ func (api *API) CreateCronjob(appName, depName, urlJob string) (interface{}, err
 }
 
 // ReadCronjobs reads all deployment's cronjobs having:
+//
 // * Application name
+//
 // * Deployment name
 //
 // Returns an interface with cronjobs details
@@ -399,8 +449,11 @@ func (api *API) ReadCronjobs(appName, depName string) (interface{}, error) {
 }
 
 // ReadCronjob reads a deployment's cronjob having:
+//
 // * Application name
+//
 // * Deployment name
+//
 // * Cronjob ID
 //
 // Returns an interface with worker details
@@ -410,8 +463,11 @@ func (api *API) ReadCronjob(appName, depName, cronjobId string) (interface{}, er
 }
 
 // DeleteCronjob removes a cronjob from a deployment having:
+//
 // * Application name
+//
 // * Deployment name
+//
 // * Cronjob ID
 //
 // Returns an error if request does not success.
@@ -424,9 +480,13 @@ func (api *API) DeleteCronjob(appName, depName, cronjobId string) error {
 */
 
 // CreateAddon creates an addon having:
+//
 // * Application name
+//
 // * Deployment name
+//
 // * Addon name
+//
 // * Options as a pointer to a map of string to strings (optional)
 //
 // Returns an interface with just created addon details
@@ -446,7 +506,9 @@ func (api *API) CreateAddon(appName, depName, addonName string, options *map[str
 }
 
 // ReadCronjobs reads all deployment's addons having:
+//
 // * Application name
+//
 // * Deployment name
 //
 // If Application and Deployment names are empty,
@@ -461,8 +523,11 @@ func (api *API) ReadAddons(appName, depName string) (interface{}, error) {
 }
 
 // ReadAddon reads a deployment's addon having:
+//
 // * Application name
+//
 // * Deployment name
+//
 // * Addon name
 //
 // Returns an interface with addon details
@@ -472,9 +537,13 @@ func (api *API) ReadAddon(appName, depName, addonName string) (interface{}, erro
 }
 
 // UpdateAddon updates addon having:
+//
 // * Application name
+//
 // * Deployment name
+//
 // * Current Addon name
+//
 // * New Addon name to update to
 //
 // Returns an interface with the updated addon details
@@ -491,8 +560,11 @@ func (api *API) UpdateAddon(appName, depName, addonName, addonNameToUpdateTo str
 }
 
 // DeleteAddon deletes an addon having:
+//
 // * Application name
+//
 // * Deployment name
+//
 // * Addon name
 //
 // Returns an error if request does not success.
@@ -505,8 +577,11 @@ func (api *API) DeleteAddon(appName, depName, addonName string) error {
 */
 
 // CreateAppUser adds an user to an application having:
+//
 // * Application name
+//
 // * User email
+//
 // * User role (optional)
 //
 // Returns an interface with just created user details
@@ -523,6 +598,7 @@ func (api *API) CreateAppUser(appName, userEmail, role string) (interface{}, err
 }
 
 // ReadAppUsers reads all application's users having:
+//
 // * Application name
 //
 // Returns an interface with users details
@@ -532,7 +608,9 @@ func (api *API) ReadAppUsers(appName string) (interface{}, error) {
 }
 
 // DeleteAppUser removes an user from an application having:
+//
 // * Application name
+//
 // * User name
 //
 // Returns an error if request does not success.
@@ -545,9 +623,13 @@ func (api *API) DeleteAppUser(appName, userName string) error {
 */
 
 // CreateDeploymentUser adds an user to a deployment having:
+//
 // * Application name
+//
 // * Deployment name
+//
 // * User email
+//
 // * User role (optional)
 //
 // Returns an interface with just created user details
@@ -564,8 +646,11 @@ func (api *API) CreateDeploymentUser(appName, depName, userEmail, role string) (
 }
 
 // DeleteDeploymentUser removes an user from a deployment having:
+//
 // * Application name
+//
 // * Deployment name
+//
 // * User name
 //
 // Returns an error if request does not success.
