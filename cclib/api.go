@@ -228,6 +228,7 @@ func (api *API) ReadDeploymentUsers(appName, depName string) (interface{}, error
 }
 
 // UpdateDeployment updates deployment having:
+//
 // * Application name
 //
 // * Deployment name
@@ -656,6 +657,73 @@ func (api *API) CreateDeploymentUser(appName, depName, userEmail, role string) (
 // Returns an error if request does not success.
 func (api *API) DeleteDeploymentUser(appName, depName, userName string) error {
 	return api.Delete(fmt.Sprintf("/app/%s/deployment/%s/user/%s/", appName, depName, userName))
+}
+
+/*
+	Users
+*/
+
+// CreateUser creates a new user having:
+//
+// * User name
+//
+// * User email
+//
+// * User password
+//
+// Returns an interface with just created user details
+// and an error if request does not success.
+func (api *API) CreateUser(userName, userEmail, password string) (interface{}, error) {
+	user := url.Values{}
+	user.Add("username", userName)
+	user.Add("email", userEmail)
+	user.Add("password", password)
+
+	return api.Post("/user/", user)
+}
+
+// ReadUsers gets users. Usually just your own.
+//
+// Returns an interface with users details
+// and an error if request does not success.
+func (api *API) ReadUsers() (interface{}, error) {
+	return api.Get("/user/")
+}
+
+// ReadUser reads a user having:
+//
+// * User name
+//
+// Returns an interface with user details
+// and an error if request does not success.
+func (api *API) ReadUser(userName string) (interface{}, error) {
+	return api.Get(fmt.Sprintf("/user/%s/", userName))
+}
+
+// UpdateUser updates an user having:
+//
+// * User name
+//
+// * Activation code for activation after registration
+//
+// Returns an interface with the updated user details
+// and an error if request does not success.
+func (api *API) UpdateUser(userName, activationCode string) (interface{}, error) {
+	user := url.Values{}
+	if activationCode != "" {
+		user.Add("activation_code", activationCode)
+	}
+
+	return api.Put(fmt.Sprintf("/user/%s/", userName), user)
+}
+
+// DeleteUser deletes as user having:
+//
+// * User name
+//
+// Returns an error if request does not success.
+func (api *API) DeleteUser(userName string) error {
+	return api.Delete(fmt.Sprintf("/app/%s/", userName))
 }
 
 /*
