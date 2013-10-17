@@ -29,6 +29,7 @@ package main
 import (
   "fmt"
   "os"
+  "net/url"
 
   cc "github.com/fern4lvarez/gocclib/cclib"
 )
@@ -41,7 +42,18 @@ func main() {
     os.Exit(0)
   }
 
+  // You can use the defined interface methods:
   apps := api.ReadApps()
+  newApp := api.CreateApp("newapp", "ruby", "git", "")
+  newDep := api.CreateDeployment("newapp", "production", "")
+  depUsers := api.ReadDeploymentUsers("newApp", "production")
+  ...
+
+  // Or you can make your own request having a resource and data
+  data := url.Values{}
+  data.Add("name", "staging")
+  resource := fmt.Sprintf("/app/%s/deployment/", "newapp")
+  anotherNewDep := api.Post(resource, data)
   ...
 }
 ```

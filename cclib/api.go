@@ -146,7 +146,7 @@ func (api *API) CreateApp(appName, appType, repositoryType, buildpackURL string)
 		app.Add("buildpack_url", buildpackURL)
 	}
 
-	return api.postRequest("/app/", app)
+	return api.Post("/app/", app)
 }
 
 // ReadApps reads applications of current user.
@@ -154,7 +154,7 @@ func (api *API) CreateApp(appName, appType, repositoryType, buildpackURL string)
 // Returns an interface object with applications details
 // and an error if request does not success.
 func (api *API) ReadApps() (interface{}, error) {
-	return api.getRequest("/app/")
+	return api.Get("/app/")
 }
 
 // ReadApp reads an application having:
@@ -164,7 +164,7 @@ func (api *API) ReadApps() (interface{}, error) {
 // Returns an interface with application details
 // and an error if request does not success.
 func (api *API) ReadApp(appName string) (interface{}, error) {
-	return api.getRequest(fmt.Sprintf("/app/%s/", appName))
+	return api.Get(fmt.Sprintf("/app/%s/", appName))
 }
 
 // DeleteApp deletes an application having:
@@ -173,7 +173,7 @@ func (api *API) ReadApp(appName string) (interface{}, error) {
 //
 // Returns an error if request does not success.
 func (api *API) DeleteApp(appName string) error {
-	return api.deleteRequest(fmt.Sprintf("/app/%s/", appName))
+	return api.Delete(fmt.Sprintf("/app/%s/", appName))
 }
 
 /*
@@ -186,7 +186,7 @@ func (api *API) DeleteApp(appName string) error {
 //
 // * Deployment name
 //
-// * Stack name (Optional)
+// * Stack name, optional
 //
 // Returns an interface with just created deployment details
 // and an error if request does not success.
@@ -200,7 +200,7 @@ func (api *API) CreateDeployment(appName, depName, stack string) (interface{}, e
 		dep.Add("stack", stack)
 	}
 
-	return api.postRequest(fmt.Sprintf("/app/%s/deployment/", appName), dep)
+	return api.Post(fmt.Sprintf("/app/%s/deployment/", appName), dep)
 }
 
 // ReadDeployment reads a deployment having:
@@ -212,7 +212,7 @@ func (api *API) CreateDeployment(appName, depName, stack string) (interface{}, e
 // Returns an interface with deployment details
 // and an error if request does not success.
 func (api *API) ReadDeployment(appName, depName string) (interface{}, error) {
-	return api.getRequest(fmt.Sprintf("/app/%s/deployment/%s/", appName, depName))
+	return api.Get(fmt.Sprintf("/app/%s/deployment/%s/", appName, depName))
 }
 
 // ReadDeployment reads deployment's users having:
@@ -224,7 +224,7 @@ func (api *API) ReadDeployment(appName, depName string) (interface{}, error) {
 // Returns an interface with deployment's users details
 // and an error if request does not success.
 func (api *API) ReadDeploymentUsers(appName, depName string) (interface{}, error) {
-	return api.getRequest(fmt.Sprintf("/app/%s/deployment/%s/user/", appName, depName))
+	return api.Get(fmt.Sprintf("/app/%s/deployment/%s/user/", appName, depName))
 }
 
 // UpdateDeployment updates deployment having:
@@ -269,7 +269,7 @@ func (api *API) UpdateDeployment(appName, depName, version, billingAccount, stac
 		dep.Add("stack", stack)
 	}
 
-	return api.putRequest(fmt.Sprintf("/app/%s/deployment/%s/", appName, depName), dep)
+	return api.Put(fmt.Sprintf("/app/%s/deployment/%s/", appName, depName), dep)
 }
 
 // DeleteDeployment deletes a deployment having:
@@ -280,7 +280,7 @@ func (api *API) UpdateDeployment(appName, depName, version, billingAccount, stac
 //
 // Returns an error if request does not success.
 func (api *API) DeleteDeployment(appName, depName string) error {
-	return api.deleteRequest(fmt.Sprintf("/app/%s/deployment/%s/", appName, depName))
+	return api.Delete(fmt.Sprintf("/app/%s/deployment/%s/", appName, depName))
 }
 
 /*
@@ -301,7 +301,7 @@ func (api *API) CreateAlias(appName, aliasName, depName string) (interface{}, er
 	alias := url.Values{}
 	alias.Add("name", aliasName)
 
-	return api.postRequest(fmt.Sprintf("/app/%s/deployment/%s/alias/", appName, depName), alias)
+	return api.Post(fmt.Sprintf("/app/%s/deployment/%s/alias/", appName, depName), alias)
 }
 
 // ReadAliases reads all deployment's aliases having:
@@ -313,7 +313,7 @@ func (api *API) CreateAlias(appName, aliasName, depName string) (interface{}, er
 // Returns an interface with aliases details
 // and an error if request does not success.
 func (api *API) ReadAliases(appName, depName string) (interface{}, error) {
-	return api.getRequest(fmt.Sprintf("/app/%s/deployment/%s/alias/", appName, depName))
+	return api.Get(fmt.Sprintf("/app/%s/deployment/%s/alias/", appName, depName))
 }
 
 // ReadAlias reads a deployment's alias having:
@@ -327,7 +327,7 @@ func (api *API) ReadAliases(appName, depName string) (interface{}, error) {
 // Returns an interface with alias details
 // and an error if request does not success.
 func (api *API) ReadAlias(appName, aliasName, depName string) (interface{}, error) {
-	return api.getRequest(fmt.Sprintf("/app/%s/deployment/%s/alias/%s/", appName, depName, aliasName))
+	return api.Get(fmt.Sprintf("/app/%s/deployment/%s/alias/%s/", appName, depName, aliasName))
 }
 
 // DeleteAlias removes an alias from a deployment having:
@@ -340,7 +340,7 @@ func (api *API) ReadAlias(appName, aliasName, depName string) (interface{}, erro
 //
 // Returns an error if request does not success.
 func (api *API) DeleteAlias(appName, aliasName, depName string) error {
-	return api.deleteRequest(fmt.Sprintf("/app/%s/deployment/%s/alias/%s/", appName, depName, aliasName))
+	return api.Delete(fmt.Sprintf("/app/%s/deployment/%s/alias/%s/", appName, depName, aliasName))
 }
 
 /*
@@ -373,7 +373,7 @@ func (api *API) CreateWorker(appName, depName, command, params, size string) (in
 		worker.Add("size", size)
 	}
 
-	return api.postRequest(fmt.Sprintf("/app/%s/deployment/%s/worker/", appName, depName), worker)
+	return api.Post(fmt.Sprintf("/app/%s/deployment/%s/worker/", appName, depName), worker)
 }
 
 // ReadWorkers reads all deployment's workers having:
@@ -385,7 +385,7 @@ func (api *API) CreateWorker(appName, depName, command, params, size string) (in
 // Returns an interface with workers details
 // and an error if request does not success.
 func (api *API) ReadWorkers(appName, depName string) (interface{}, error) {
-	return api.getRequest(fmt.Sprintf("/app/%s/deployment/%s/worker/", appName, depName))
+	return api.Get(fmt.Sprintf("/app/%s/deployment/%s/worker/", appName, depName))
 }
 
 // ReadWorker reads a deployment's worker having:
@@ -399,7 +399,7 @@ func (api *API) ReadWorkers(appName, depName string) (interface{}, error) {
 // Returns an interface with worker details
 // and an error if request does not success.
 func (api *API) ReadWorker(appName, depName, workerId string) (interface{}, error) {
-	return api.getRequest(fmt.Sprintf("/app/%s/deployment/%s/worker/%s/", appName, depName, workerId))
+	return api.Get(fmt.Sprintf("/app/%s/deployment/%s/worker/%s/", appName, depName, workerId))
 }
 
 // DeleteWorker removes a worker from a deployment having:
@@ -412,7 +412,7 @@ func (api *API) ReadWorker(appName, depName, workerId string) (interface{}, erro
 //
 // Returns an error if request does not success.
 func (api *API) DeleteWorker(appName, depName, workerId string) error {
-	return api.deleteRequest(fmt.Sprintf("/app/%s/deployment/%s/worker/%s/", appName, depName, workerId))
+	return api.Delete(fmt.Sprintf("/app/%s/deployment/%s/worker/%s/", appName, depName, workerId))
 }
 
 /*
@@ -433,7 +433,7 @@ func (api *API) CreateCronjob(appName, depName, urlJob string) (interface{}, err
 	cronjob := url.Values{}
 	cronjob.Add("url", urlJob)
 
-	return api.postRequest(fmt.Sprintf("/app/%s/deployment/%s/cron/", appName, depName), cronjob)
+	return api.Post(fmt.Sprintf("/app/%s/deployment/%s/cron/", appName, depName), cronjob)
 }
 
 // ReadCronjobs reads all deployment's cronjobs having:
@@ -445,7 +445,7 @@ func (api *API) CreateCronjob(appName, depName, urlJob string) (interface{}, err
 // Returns an interface with cronjobs details
 // and an error if request does not success.
 func (api *API) ReadCronjobs(appName, depName string) (interface{}, error) {
-	return api.getRequest(fmt.Sprintf("/app/%s/deployment/%s/cron/", appName, depName))
+	return api.Get(fmt.Sprintf("/app/%s/deployment/%s/cron/", appName, depName))
 }
 
 // ReadCronjob reads a deployment's cronjob having:
@@ -459,7 +459,7 @@ func (api *API) ReadCronjobs(appName, depName string) (interface{}, error) {
 // Returns an interface with worker details
 // and an error if request does not success.
 func (api *API) ReadCronjob(appName, depName, cronjobId string) (interface{}, error) {
-	return api.getRequest(fmt.Sprintf("/app/%s/deployment/%s/cron/%s/", appName, depName, cronjobId))
+	return api.Get(fmt.Sprintf("/app/%s/deployment/%s/cron/%s/", appName, depName, cronjobId))
 }
 
 // DeleteCronjob removes a cronjob from a deployment having:
@@ -472,7 +472,7 @@ func (api *API) ReadCronjob(appName, depName, cronjobId string) (interface{}, er
 //
 // Returns an error if request does not success.
 func (api *API) DeleteCronjob(appName, depName, cronjobId string) error {
-	return api.deleteRequest(fmt.Sprintf("/app/%s/deployment/%s/cron/%s/", appName, depName, cronjobId))
+	return api.Delete(fmt.Sprintf("/app/%s/deployment/%s/cron/%s/", appName, depName, cronjobId))
 }
 
 /*
@@ -487,7 +487,7 @@ func (api *API) DeleteCronjob(appName, depName, cronjobId string) error {
 //
 // * Addon name
 //
-// * Options as a pointer to a map of string to strings (optional)
+// * Options as a pointer to a map of string to strings, optional
 //
 // Returns an interface with just created addon details
 // and an error if request does not success.
@@ -502,7 +502,7 @@ func (api *API) CreateAddon(appName, depName, addonName string, options *map[str
 
 	addon.Add("options", string(o))
 
-	return api.postRequest(fmt.Sprintf("/app/%s/deployment/%s/addon/", appName, depName), addon)
+	return api.Post(fmt.Sprintf("/app/%s/deployment/%s/addon/", appName, depName), addon)
 }
 
 // ReadCronjobs reads all deployment's addons having:
@@ -517,9 +517,9 @@ func (api *API) CreateAddon(appName, depName, addonName string, options *map[str
 // and an error if request does not success.
 func (api *API) ReadAddons(appName, depName string) (interface{}, error) {
 	if appName != "" && depName != "" {
-		return api.getRequest(fmt.Sprintf("/app/%s/deployment/%s/addon/", appName, depName))
+		return api.Get(fmt.Sprintf("/app/%s/deployment/%s/addon/", appName, depName))
 	}
-	return api.getRequest("/addon/")
+	return api.Get("/addon/")
 }
 
 // ReadAddon reads a deployment's addon having:
@@ -533,7 +533,7 @@ func (api *API) ReadAddons(appName, depName string) (interface{}, error) {
 // Returns an interface with addon details
 // and an error if request does not success.
 func (api *API) ReadAddon(appName, depName, addonName string) (interface{}, error) {
-	return api.getRequest(fmt.Sprintf("/app/%s/deployment/%s/addon/%s/", appName, depName, addonName))
+	return api.Get(fmt.Sprintf("/app/%s/deployment/%s/addon/%s/", appName, depName, addonName))
 }
 
 // UpdateAddon updates addon having:
@@ -556,7 +556,7 @@ func (api *API) UpdateAddon(appName, depName, addonName, addonNameToUpdateTo str
 	addon := url.Values{}
 	addon.Add("addon", addonNameToUpdateTo)
 
-	return api.putRequest(fmt.Sprintf("/app/%s/deployment/%s/addon/%s/", appName, depName, addonName), addon)
+	return api.Put(fmt.Sprintf("/app/%s/deployment/%s/addon/%s/", appName, depName, addonName), addon)
 }
 
 // DeleteAddon deletes an addon having:
@@ -569,7 +569,7 @@ func (api *API) UpdateAddon(appName, depName, addonName, addonNameToUpdateTo str
 //
 // Returns an error if request does not success.
 func (api *API) DeleteAddon(appName, depName, addonName string) error {
-	return api.deleteRequest(fmt.Sprintf("/app/%s/deployment/%s/addon/%s/", appName, depName, addonName))
+	return api.Delete(fmt.Sprintf("/app/%s/deployment/%s/addon/%s/", appName, depName, addonName))
 }
 
 /*
@@ -582,7 +582,7 @@ func (api *API) DeleteAddon(appName, depName, addonName string) error {
 //
 // * User email
 //
-// * User role (optional)
+// * User role, optional
 //
 // Returns an interface with just created user details
 // and an error if request does not success.
@@ -594,7 +594,7 @@ func (api *API) CreateAppUser(appName, userEmail, role string) (interface{}, err
 		user.Add("role", role)
 	}
 
-	return api.postRequest(fmt.Sprintf("/app/%s/user/", appName), user)
+	return api.Post(fmt.Sprintf("/app/%s/user/", appName), user)
 }
 
 // ReadAppUsers reads all application's users having:
@@ -604,7 +604,7 @@ func (api *API) CreateAppUser(appName, userEmail, role string) (interface{}, err
 // Returns an interface with users details
 // and an error if request does not success.
 func (api *API) ReadAppUsers(appName string) (interface{}, error) {
-	return api.getRequest(fmt.Sprintf("/app/%s/user/", appName))
+	return api.Get(fmt.Sprintf("/app/%s/user/", appName))
 }
 
 // DeleteAppUser removes an user from an application having:
@@ -615,7 +615,7 @@ func (api *API) ReadAppUsers(appName string) (interface{}, error) {
 //
 // Returns an error if request does not success.
 func (api *API) DeleteAppUser(appName, userName string) error {
-	return api.deleteRequest(fmt.Sprintf("/app/%s/user/%s/", appName, userName))
+	return api.Delete(fmt.Sprintf("/app/%s/user/%s/", appName, userName))
 }
 
 /*
@@ -630,7 +630,7 @@ func (api *API) DeleteAppUser(appName, userName string) error {
 //
 // * User email
 //
-// * User role (optional)
+// * User role, optional
 //
 // Returns an interface with just created user details
 // and an error if request does not success.
@@ -642,7 +642,7 @@ func (api *API) CreateDeploymentUser(appName, depName, userEmail, role string) (
 		user.Add("role", role)
 	}
 
-	return api.postRequest(fmt.Sprintf("/app/%s/deployment/%s/user/", appName, depName), user)
+	return api.Post(fmt.Sprintf("/app/%s/deployment/%s/user/", appName, depName), user)
 }
 
 // DeleteDeploymentUser removes an user from a deployment having:
@@ -655,15 +655,18 @@ func (api *API) CreateDeploymentUser(appName, depName, userEmail, role string) (
 //
 // Returns an error if request does not success.
 func (api *API) DeleteDeploymentUser(appName, depName, userName string) error {
-	return api.deleteRequest(fmt.Sprintf("/app/%s/deployment/%s/user/%s/", appName, depName, userName))
+	return api.Delete(fmt.Sprintf("/app/%s/deployment/%s/user/%s/", appName, depName, userName))
 }
 
 /*
 	Request wrappers
 */
 
-// getRequests makes a GET request having a resource.
-func (api *API) getRequest(resource string) (interface{}, error) {
+// Get makes a GET request having a resource and data.
+//
+// Returns an interface with the requested object
+// and an error if request does not success.
+func (api *API) Get(resource string) (interface{}, error) {
 	if err := api.RequiresToken(); err != nil {
 		return nil, err
 	}
@@ -678,8 +681,11 @@ func (api *API) getRequest(resource string) (interface{}, error) {
 	return decodeContent(content)
 }
 
-// postRequests makes a POST request having a resource and data.
-func (api *API) postRequest(resource string, data url.Values) (interface{}, error) {
+// Post makes a POST request having a resource and data.
+//
+// Returns an interface with the new object
+// and an error if request does not success.
+func (api *API) Post(resource string, data url.Values) (interface{}, error) {
 	if err := api.RequiresToken(); err != nil {
 		return nil, err
 	}
@@ -694,8 +700,11 @@ func (api *API) postRequest(resource string, data url.Values) (interface{}, erro
 	return decodeContent(content)
 }
 
-// putRequests makes a PUT request having a resource and data.
-func (api *API) putRequest(resource string, data url.Values) (interface{}, error) {
+// Put makes a PUT request having a resource and data.
+//
+// Returns an interface with the updated object
+// and an error if request does not success.
+func (api *API) Put(resource string, data url.Values) (interface{}, error) {
 	if err := api.RequiresToken(); err != nil {
 		return nil, err
 	}
@@ -710,8 +719,10 @@ func (api *API) putRequest(resource string, data url.Values) (interface{}, error
 	return decodeContent(content)
 }
 
-// deleteRequests makes a DELETE request having a resource.
-func (api *API) deleteRequest(resource string) error {
+// Delete makes a DELETE request having a resource.
+//
+// Returns an error if request does not success.
+func (api *API) Delete(resource string) error {
 	if err := api.RequiresToken(); err != nil {
 		return err
 	}
