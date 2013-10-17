@@ -10,6 +10,7 @@ import (
 	"strings"
 )
 
+// Request contains the API request basic information
 type Request struct {
 	email           string
 	password        string
@@ -21,6 +22,15 @@ type Request struct {
 	caCerts         string
 }
 
+// New request creates a new api request having:
+//
+// * User email
+//
+// * User password
+//
+// * User token
+//
+// Returns a new request pointer
 func NewRequest(email string, password string, token *Token) *Request {
 	return &Request{
 		email,
