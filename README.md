@@ -43,17 +43,17 @@ func main() {
   }
 
   // You can use the defined interface methods:
-  apps := api.ReadApps()
-  newApp := api.CreateApp("newapp", "ruby", "git", "")
-  newDep := api.CreateDeployment("newapp", "production", "")
-  depUsers := api.ReadDeploymentUsers("newApp", "production")
+  apps, _ := api.ReadApps()
+  newApp, _ := api.CreateApp("newapp", "ruby", "git", "")
+  newDep, _ := api.CreateDeployment("newapp", "production", "")
+  depUsers, _ := api.ReadDeploymentUsers("newapp", "production")
   ...
 
   // Or you can make your own request having a resource and data
   data := url.Values{}
   data.Add("name", "staging")
   resource := fmt.Sprintf("/app/%s/deployment/", "newapp")
-  anotherNewDep := api.Post(resource, data)
+  anotherNewDep. _ := api.Post(resource, data)
   ...
 }
 ```

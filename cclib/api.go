@@ -60,6 +60,7 @@ func (api API) RequiresToken() (e error) {
 
 // CreateTokenFromFile creates a token for an api from
 // a credential file's path.
+//
 // This file must contain two lines, first for the password and
 // second for the password. Returns an error if credentials file
 // is not OK or if there is problems creating a token.
@@ -74,7 +75,7 @@ func (api *API) CreateTokenFromFile(filepath string) (err error) {
 
 // CreateToken creates a token for an api from
 // a email and password.
-// Returns an error if there is problems creating a token.
+// Returns an error if there is any problem creating the token.
 func (api *API) CreateToken(email string, password string) (err error) {
 	request := NewRequest(email, password, nil)
 	content, err := request.Post("/token/", nil)
