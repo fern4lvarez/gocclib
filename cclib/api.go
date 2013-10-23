@@ -728,6 +728,58 @@ func (api *API) DeleteUser(userName string) error {
 }
 
 /*
+	Keys
+*/
+
+// CreateUserKey creates a new user's key having:
+//
+// * User name
+//
+// * Public key
+//
+// Returns an interface with just created key details
+// and an error if request does not success.
+func (api *API) CreateUserKey(userName, publicKey string) (interface{}, error) {
+	key := url.Values{}
+	key.Add("key", publicKey)
+
+	return api.Post(fmt.Sprintf("/user/%s/key/", userName), key)
+}
+
+// ReadUserKeys gets all user keys having:
+//
+// * UserName
+//
+// Returns an interface with keys details
+// and an error if request does not success.
+func (api *API) ReadUserKeys(userName string) (interface{}, error) {
+	return api.Get(fmt.Sprintf("/user/%s/key/", userName))
+}
+
+// ReadUserKey reads a user's key having:
+//
+// * User name
+//
+// * Key ID
+//
+// Returns an interface with key details
+// and an error if request does not success.
+func (api *API) ReadUserKey(userName, keyID string) (interface{}, error) {
+	return api.Get(fmt.Sprintf("/user/%s/key/%s/", userName, keyID))
+}
+
+// DeleteUserKey deletes a user's key having:
+//
+// * User name
+//
+// * Key ID
+//
+// Returns an error if request does not success.
+func (api *API) DeleteUserKey(userName, keyID string) error {
+	return api.Delete(fmt.Sprintf("/user/%s/key/%s/", userName, keyID))
+}
+
+/*
 	Request wrappers
 */
 
