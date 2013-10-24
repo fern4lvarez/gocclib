@@ -53,7 +53,7 @@ func main() {
   data := url.Values{}
   data.Add("name", "staging")
   resource := fmt.Sprintf("/app/%s/deployment/", "newapp")
-  anotherNewDep. _ := api.Post(resource, data)
+  anotherNewDep, _ := api.Post(resource, data)
   ...
 }
 ```
