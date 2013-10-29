@@ -706,18 +706,52 @@ func (api *API) ReadUser(userName string) (interface{}, error) {
 	return api.Get(fmt.Sprintf("/user/%s/", userName))
 }
 
-// UpdateUser updates an user having:
+// ActivateUser activates a new user having:
 //
 // * User name
 //
 // * Activation code for activation after registration
 //
-// Returns an interface with the updated user details
+// Returns an interface with the activated user details
 // and an error if request does not success.
-func (api *API) UpdateUser(userName, activationCode string) (interface{}, error) {
+func (api *API) ActivateUser(userName, activationCode string) (interface{}, error) {
 	user := url.Values{}
 	if activationCode != "" {
 		user.Add("activation_code", activationCode)
+	}
+
+	return api.Put(fmt.Sprintf("/user/%s/", userName), user)
+}
+
+// UpdateUser updates an existing user having:
+//
+// * User name
+//
+// * First name, optional
+//
+// * Last name, optional
+//
+// * Password, optional
+//
+// * Email, optional
+//
+// NOTE: At least one of the arguments must be provided.
+//
+// Returns an interface with the updated user details
+// and an error if request does not success.
+func (api *API) UpdateUser(userName, firstName, lastName, password, email string) (interface{}, error) {
+	user := url.Values{}
+	if firstName != "" {
+		user.Add("first_name", firstName)
+	}
+	if lastName != "" {
+		user.Add("last_name", lastName)
+	}
+	if password != "" {
+		user.Add("password", password)
+	}
+	if email != "" {
+		user.Add("email", email)
 	}
 
 	return api.Put(fmt.Sprintf("/user/%s/", userName), user)
