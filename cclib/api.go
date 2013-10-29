@@ -29,6 +29,7 @@ import (
 	"errors"
 	"fmt"
 	"net/url"
+	"os"
 	"strconv"
 )
 
@@ -47,6 +48,10 @@ func NewAPI() *API {
 
 // NewAPIToken creates an API instance from a token.
 func NewAPIToken(token *Token) *API {
+	if api_url := os.Getenv("CCTRL_API_URL"); api_url != "" {
+		API_URL = api_url
+		fmt.Println(api_url)
+	}
 	return &API{"", API_URL, token}
 }
 
