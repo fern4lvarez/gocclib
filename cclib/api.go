@@ -848,6 +848,48 @@ func (api *API) ReadLog(appName, depName, logType string, lastTime *time.Time) (
 }
 
 /*
+	Billing Accounts
+*/
+
+// CreateBillingAccount creates a new billing account having:
+//
+// * User name
+//
+// * Billing name
+//
+// * Billing data in url.Values format
+//
+// Returns an interface with just created billing account details
+// and an error if request does not success.
+func (api *API) CreateBillingAccount(userName, billingName string, billingData url.Values) (interface{}, error) {
+	return api.Post(fmt.Sprintf("/user/%s/billing/%s/", userName, billingName), billingData)
+}
+
+// ReadBillingAccounts gets all billing accounts from a user having:
+//
+// * User name
+//
+// Returns an interface with user's billing accounts
+// and an error if request does not success.
+func (api *API) ReadBillingAccounts(userName string) (interface{}, error) {
+	return api.Get(fmt.Sprintf("/user/%s/billing/", userName))
+}
+
+// UpdateBillingAccount updates an existing user's billing account having:
+//
+// * User name
+//
+// * Billing name
+//
+// * Billing data in url.Values format
+//
+// Returns an interface with the updated user's billing account details
+// and an error if request does not success.
+func (api *API) UpdateBillingAccount(userName, billingName string, billingData url.Values) (interface{}, error) {
+	return api.Put(fmt.Sprintf("/user/%s/billing/%s/", userName, billingName), billingData)
+}
+
+/*
 	Request wrappers
 */
 
