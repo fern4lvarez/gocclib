@@ -3,6 +3,7 @@ package cclib
 import (
 	"bytes"
 	"crypto/tls"
+	"crypto/x509"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -20,7 +21,7 @@ type Request struct {
 	cache    string
 	url      string
 	sslCheck bool
-	caCerts  string
+	caCerts  *x509.CertPool
 }
 
 // New request creates a new api request having:
@@ -75,8 +76,8 @@ func (request Request) SSLCheck() bool {
 	return request.sslCheck
 }
 
-// CaCerts returns request's CA Certificates
-func (request Request) CaCerts() string {
+// CaCerts returns request's root CA
+func (request Request) CaCerts() *x509.CertPool {
 	return request.caCerts
 }
 
@@ -115,8 +116,8 @@ func (request *Request) DisableSSLCheck() {
 	request.sslCheck = false
 }
 
-// SetCaCerts sets CA certificates to a request
-func (request *Request) SetCaCerts(caCerts string) {
+// SetCaCerts sets a set of root CA to a request
+func (request *Request) SetCaCerts(caCerts *x509.CertPool) {
 	request.caCerts = caCerts
 }
 
@@ -149,7 +150,9 @@ func (request Request) do(resource string, method string, data url.Values) ([]by
 	urlStr := fmt.Sprintf("%v", u)
 
 	tr := &http.Transport{
-		TLSClientConfig: &tls.Config{InsecureSkipVerify: !SSL_CHECK},
+		TLSClientConfig: &tls.Config{
+			InsecureSkipVerify: !request.SSLCheck(),
+			RootCAs:            request.CaCerts()},
 	}
 	client := &http.Client{Transport: tr}
 
