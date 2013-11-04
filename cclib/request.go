@@ -2,6 +2,7 @@ package cclib
 
 import (
 	"bytes"
+	"crypto/tls"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -12,14 +13,14 @@ import (
 
 // Request contains the API request basic information
 type Request struct {
-	email           string
-	password        string
-	token           *Token
-	version         string
-	cache           string
-	url             string
-	disableSSLCheck bool
-	caCerts         string
+	email    string
+	password string
+	token    *Token
+	version  string
+	cache    string
+	url      string
+	sslCheck bool
+	caCerts  string
 }
 
 // New request creates a new api request having:
@@ -39,50 +40,102 @@ func NewRequest(email string, password string, token *Token) *Request {
 		VERSION,
 		CACHE,
 		API_URL,
-		DISABLE_SSL_CHECK,
+		SSL_CHECK,
 		CA_CERTS}
 }
 
+// Email returns request's email
 func (request Request) Email() string {
 	return request.email
 }
 
+// Password returns request's password
 func (request Request) Password() string {
 	return request.password
 }
 
+// Token returns request's token
 func (request Request) Token() *Token {
 	return request.token
 }
 
+// Cache returns request's cache
 func (request Request) Cache() string {
 	return request.cache
 }
 
+// Url returns request's Url
 func (request Request) Url() string {
 	return request.url
 }
 
-func (request Request) DisableSSLCheck() bool {
-	return request.disableSSLCheck
+// SSLCheck returns true if SSL Certificate is checked and verified,
+// returns false if SSL certificate check is skipped.
+func (request Request) SSLCheck() bool {
+	return request.sslCheck
 }
 
+// CaCerts returns request's CA Certificates
 func (request Request) CaCerts() string {
 	return request.caCerts
 }
 
+// SetEmail sets email address to a request
+func (request *Request) SetEmail(email string) {
+	request.email = email
+}
+
+// SetPassword sets a password to a request
+func (request *Request) SetPassword(password string) {
+	request.password = password
+}
+
+// SetToken sets a token to a request
+func (request *Request) SetToken(token *Token) {
+	request.token = token
+}
+
+// SetCache sets a cache to a request
+func (request *Request) SetCache(cache string) {
+	request.cache = cache
+}
+
+// SetUrl sets a URL to a request
+func (request *Request) SetUrl(url string) {
+	request.url = url
+}
+
+// EnableSSLCheck enables the SSL certificate verification
+func (request *Request) EnableSSLCheck() {
+	request.sslCheck = true
+}
+
+// DisableSSLCheck disables the SSL certificate verification
+func (request *Request) DisableSSLCheck() {
+	request.sslCheck = false
+}
+
+// SetCaCerts sets CA certificates to a request
+func (request *Request) SetCaCerts(caCerts string) {
+	request.caCerts = caCerts
+}
+
+// Post makes a POST request
 func (request Request) Post(resource string, data url.Values) ([]byte, error) {
 	return request.do(resource, "POST", data)
 }
 
+// Get makes a GET request
 func (request Request) Get(resource string) ([]byte, error) {
 	return request.do(resource, "GET", url.Values{})
 }
 
+// Put makes a PUT request
 func (request Request) Put(resource string, data url.Values) ([]byte, error) {
 	return request.do(resource, "PUT", data)
 }
 
+// Delete makes a DELETE request
 func (request Request) Delete(resource string) ([]byte, error) {
 	return request.do(resource, "DELETE", url.Values{})
 }
@@ -94,7 +147,11 @@ func (request Request) do(resource string, method string, data url.Values) ([]by
 	}
 	u.Path = resource
 	urlStr := fmt.Sprintf("%v", u)
-	client := &http.Client{}
+
+	tr := &http.Transport{
+		TLSClientConfig: &tls.Config{InsecureSkipVerify: !SSL_CHECK},
+	}
+	client := &http.Client{Transport: tr}
 
 	r, err := http.NewRequest(method, urlStr, bytes.NewBufferString(data.Encode()))
 	if err != nil {

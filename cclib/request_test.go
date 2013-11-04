@@ -36,8 +36,8 @@ func TestRequest(t *testing.T) {
 	if req.Url() != API_URL {
 		t.Errorf(msgFail, "NewRequest and Url", API_URL, req.Url())
 	}
-	if req.DisableSSLCheck() != DISABLE_SSL_CHECK {
-		t.Errorf(msgFail, "NewRequest and DisableSSLCheck", DISABLE_SSL_CHECK, req.DisableSSLCheck())
+	if req.SSLCheck() != SSL_CHECK {
+		t.Errorf(msgFail, "NewRequest and SSLCheck", SSL_CHECK, req.SSLCheck())
 	}
 	if req.CaCerts() != CA_CERTS {
 		t.Errorf(msgFail, "NewRequest and CaCerts", CA_CERTS, req.CaCerts())
