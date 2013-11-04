@@ -174,15 +174,28 @@ func (request Request) do(resource string, method string, data url.Values) ([]by
 	r.Header.Add("Content-Length", strconv.Itoa(len(data.Encode())))
 	r.Header.Add("Accept-Encoding", "compress, gzip")
 
+	if DEBUG {
+		fmt.Printf("DEBUG Request >>> %v\n", r)
+	}
+
 	resp, err := client.Do(r)
 	if err != nil {
+		fmt.Printf("DEBUG Request Error >>> %v\n", err)
 		return nil, err
 	}
 
 	if err = checkResponse(resp); err != nil {
-		return nil, err
+		if DEBUG {
+			fmt.Printf("DEBUG Request Error >>> %v\n", err)
+			return nil, err
+		}
 	}
 
 	defer resp.Body.Close()
+	if DEBUG {
+		fmt.Printf("DEBUG Response >>> %v\n", resp)
+		fmt.Printf("DEBUG Body >>> %v\n", resp.Body)
+	}
+
 	return ioutil.ReadAll(resp.Body)
 }
