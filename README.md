@@ -1,4 +1,4 @@
-# gocclib
+# gocclib [![Build Status](https://travis-ci.org/fern4lvarez/gocclib.png)](https://travis-ci.org/fern4lvarez/gocclib) 
 
 [Documentation online](http://godoc.org/github.com/fern4lvarez/gocclib/cclib)
 
