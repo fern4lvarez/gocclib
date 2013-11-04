@@ -31,6 +31,7 @@ import (
 	"net/url"
 	"os"
 	"strconv"
+	"time"
 )
 
 // An API is the entity that make calls and manage
@@ -815,6 +816,35 @@ func (api *API) ReadUserKey(userName, keyID string) (interface{}, error) {
 // Returns an error if request does not success.
 func (api *API) DeleteUserKey(userName, keyID string) error {
 	return api.Delete(fmt.Sprintf("/user/%s/key/%s/", userName, keyID))
+}
+
+/*
+	Logs
+*/
+
+// ReadLog gets a deployment's log having:
+//
+// * Application name
+//
+// * Deployment name
+//
+// * Log type: worker, error, access
+//
+// * Last time from where to read on, optional. Make use of a time.Time struct pointer.
+//
+// Returns an interface with log entries
+// and an error if request does not success.
+func (api *API) ReadLog(appName, depName, logType string, lastTime *time.Time) (interface{}, error) {
+	var resource string
+	fmt.Println(lastTime)
+	if lastTime == nil {
+		resource = fmt.Sprintf("/app/%s/deployment/%s/log/%s/", appName, depName, logType)
+	} else {
+		resource = fmt.Sprintf("/app/%s/deployment/%s/log/%s/?timestamp=%s", appName, depName, logType, buildTimestamp(lastTime))
+		fmt.Println(buildTimestamp(lastTime))
+	}
+	fmt.Println(resource)
+	return api.Get(resource)
 }
 
 /*

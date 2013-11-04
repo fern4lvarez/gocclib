@@ -6,9 +6,12 @@ import (
 	"compress/gzip"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
 	"net/http"
 	"os"
+	"strconv"
+	"time"
 	"unicode/utf8"
 )
 
@@ -79,4 +82,15 @@ func readCredentialsFile(filepath string) (email, password string, err error) {
 	}
 
 	return
+}
+
+func buildTimestamp(dt *time.Time) string {
+	m := strconv.Itoa(dt.Nanosecond())
+	if len(m) > 5 {
+		m = m[:6]
+	}
+
+	u := dt.Unix()
+
+	return fmt.Sprintf("%s.%s", strconv.Itoa(int(u)), m)
 }

@@ -10,6 +10,7 @@ import (
 	"os"
 	"reflect"
 	"testing"
+	"time"
 )
 
 func TestDecodeContentUTF8Valid(t *testing.T) {
@@ -146,4 +147,19 @@ func TestReadCredentialsFile(t *testing.T) {
 	// After
 	os.RemoveAll(".ccfile1")
 	os.RemoveAll(".ccfile2")
+}
+
+func TestBuildTimestamp(t *testing.T) {
+	// Given
+	dt := time.Date(2013, 1, 1, 0, 0, 0, 123456789, time.UTC)
+	tsExpected := "1356998400.123456"
+
+	// When
+	ts := buildTimestamp(&dt)
+
+	// Then
+	if ts != tsExpected {
+		t.Errorf(msgFail, "buildTimestamp", tsExpected, ts)
+	}
+
 }
