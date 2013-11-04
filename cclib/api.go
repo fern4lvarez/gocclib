@@ -836,14 +836,11 @@ func (api *API) DeleteUserKey(userName, keyID string) error {
 // and an error if request does not success.
 func (api *API) ReadLog(appName, depName, logType string, lastTime *time.Time) (interface{}, error) {
 	var resource string
-	fmt.Println(lastTime)
 	if lastTime == nil {
 		resource = fmt.Sprintf("/app/%s/deployment/%s/log/%s/", appName, depName, logType)
 	} else {
 		resource = fmt.Sprintf("/app/%s/deployment/%s/log/%s/?timestamp=%s", appName, depName, logType, buildTimestamp(lastTime))
-		fmt.Println(buildTimestamp(lastTime))
 	}
-	fmt.Println(resource)
 	return api.Get(resource)
 }
 
