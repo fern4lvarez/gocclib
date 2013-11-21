@@ -10,5 +10,5 @@ var (
 	CA_CERTS  *x509.CertPool
 	CACHE     string  // TODO
 	DEBUG     = false // Set debug to true to enable debugging
-	VERSION   = "0.2.0"
+	VERSION   = "0.2.1"
 )
