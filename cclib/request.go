@@ -187,8 +187,8 @@ func (request Request) do(resource string, method string, data url.Values) ([]by
 	if err = checkResponse(resp); err != nil {
 		if DEBUG {
 			fmt.Printf("DEBUG Request Error >>> %v\n", err)
-			return nil, err
 		}
+		return nil, err
 	}
 
 	defer resp.Body.Close()

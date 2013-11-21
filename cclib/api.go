@@ -553,15 +553,32 @@ func (api *API) ReadAddon(appName, depName, addonName string) (interface{}, erro
 //
 // * New Addon name to update to
 //
+// * Addon settings to update, optional
+//
+// * Force update in case of conflict
+//
 // Returns an interface with the updated addon details
 // and an error if request does not success.
-func (api *API) UpdateAddon(appName, depName, addonName, addonNameToUpdateTo string) (interface{}, error) {
+func (api *API) UpdateAddon(appName, depName, addonName, addonNameToUpdateTo string, settings *map[string]interface{}, force bool) (interface{}, error) {
 	if depName == "" {
 		depName = "default"
 	}
 
 	addon := url.Values{}
 	addon.Add("addon", addonNameToUpdateTo)
+
+	if settings != nil {
+		s, err := json.Marshal(&settings)
+		if err != nil {
+			return nil, err
+		}
+
+		addon.Add("settings", string(s))
+	}
+
+	if force {
+		addon.Add("force", "true")
+	}
 
 	return api.Put(fmt.Sprintf("/app/%s/deployment/%s/addon/%s/", appName, depName, addonName), addon)
 }
