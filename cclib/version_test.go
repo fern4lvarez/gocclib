@@ -9,7 +9,7 @@ func TestVersion(t *testing.T) {
 	v := Version()
 
 	// Then
-	if v != "0.2.2" {
-		t.Errorf(msgFail, "Version", "0.2.2", v)
+	if v != "0.2.3" {
+		t.Errorf(msgFail, "Version", "0.2.3", v)
 	}
 }

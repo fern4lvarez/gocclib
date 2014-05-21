@@ -5,10 +5,10 @@ import (
 )
 
 var (
-	API_URL   = "https://api.cloudcontrol.com"
+	API_URL   = "https://api.cloudcontrolled.com"
 	SSL_CHECK = true
 	CA_CERTS  *x509.CertPool
 	CACHE     string  // TODO
 	DEBUG     = false // Set debug to true to enable debugging
-	VERSION   = "0.2.2"
+	VERSION   = "0.2.3"
 )
