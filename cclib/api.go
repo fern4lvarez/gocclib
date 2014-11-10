@@ -76,14 +76,33 @@ import (
 // An API is the entity that make calls and manage
 // the cloudControl interface.
 type API struct {
-	Cache string
-	Url   string
-	Token *Token
+	Cache            string
+	Url              string
+	Token            *Token
+	TokenSourceUrl   string
+	RegisterAddonUrl string
 }
 
-// NewAPI creates a new API instance.
+// NewAPI creates a default new API instance.
 func NewAPI() *API {
 	return NewAPIToken(nil)
+}
+
+// NewCustomAPI create a new API instance with custom values.
+func NewCustomAPI(url string, token *Token, tokenSourceUrl string, registerAddonUrl string) *API {
+	if url == "" {
+		url = API_URL
+	}
+
+	if tokenSourceUrl == "" {
+		tokenSourceUrl = fmt.Sprintf("%s%s", url, "/token/")
+	}
+
+	if registerAddonUrl == "" {
+		registerAddonUrl = url
+	}
+
+	return &API{"", url, token, tokenSourceUrl, registerAddonUrl}
 }
 
 // NewAPIToken creates an API instance from a token.
@@ -91,7 +110,10 @@ func NewAPIToken(token *Token) *API {
 	if api_url := os.Getenv("CCTRL_API_URL"); api_url != "" {
 		API_URL = api_url
 	}
-	return &API{"", API_URL, token}
+
+	tokenSourceUrl := fmt.Sprintf("%s%s", API_URL, "/token/")
+
+	return &API{"", API_URL, token, tokenSourceUrl, API_URL}
 }
 
 // RequiresToken returns an error if API has no token.
@@ -121,8 +143,8 @@ func (api *API) CreateTokenFromFile(filepath string) (err error) {
 // a email and password.
 // Returns an error if there is any problem creating the token.
 func (api *API) CreateToken(email string, password string) (err error) {
-	request := NewRequest(email, password, nil)
-	content, err := request.Post("/token/", nil)
+	request := NewRequest(email, password, api.Url, nil, api.TokenSourceUrl)
+	content, err := request.PostToken()
 	if err != nil {
 		return err
 	}
@@ -148,6 +170,16 @@ func (api API) CheckToken() bool {
 // SetToken sets a token to an api.
 func (api *API) SetToken(t *Token) {
 	api.Token = t
+}
+
+// Set TokenSourceUrl sets the Token source URL to an api
+func (api *API) SetTokenSourceUrl(tokenSourceUrl string) {
+	api.TokenSourceUrl = tokenSourceUrl
+}
+
+// Set RegisterAddonUrl sets the URL for regostering an addon to an api
+func (api *API) SetRegisterAddonUrl(registerAddonUrl string) {
+	api.RegisterAddonUrl = registerAddonUrl
 }
 
 /*
@@ -1012,7 +1044,7 @@ func (api *API) Get(resource string) (interface{}, error) {
 		return nil, err
 	}
 
-	request := NewRequest("", "", api.Token)
+	request := NewRequest("", "", api.Url, api.Token, "")
 
 	content, err := request.Get(resource)
 	if err != nil {
@@ -1031,7 +1063,7 @@ func (api *API) Post(resource string, data url.Values) (interface{}, error) {
 		return nil, err
 	}
 
-	request := NewRequest("", "", api.Token)
+	request := NewRequest("", "", api.Url, api.Token, "")
 
 	content, err := request.Post(resource, data)
 	if err != nil {
@@ -1050,7 +1082,7 @@ func (api *API) Put(resource string, data url.Values) (interface{}, error) {
 		return nil, err
 	}
 
-	request := NewRequest("", "", api.Token)
+	request := NewRequest("", "", api.Url, api.Token, "")
 
 	content, err := request.Put(resource, data)
 	if err != nil {
@@ -1068,7 +1100,7 @@ func (api *API) Delete(resource string) error {
 		return err
 	}
 
-	request := NewRequest("", "", api.Token)
+	request := NewRequest("", "", api.Url, api.Token, "")
 
 	content, err := request.Delete(resource)
 	if err != nil {
