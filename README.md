@@ -1,63 +1,83 @@
-# gocclib [![Build Status](https://travis-ci.org/fern4lvarez/gocclib.png)](https://travis-ci.org/fern4lvarez/gocclib) 
-
-[Documentation online](http://godoc.org/github.com/fern4lvarez/gocclib/cclib)
+gocclib [![Build Status](https://travis-ci.org/fern4lvarez/gocclib.png)](https://travis-ci.org/fern4lvarez/gocclib)[![GoDoc](http://godoc.org/github.com/fern4lvarez/gocclib/cclib?status.png)](http://godoc.org/github.com/fern4lvarez/gocclib/cclib)
+========
 
 **cclib** is a wrapper for the cloudControl API written in Go.
 Please read the API documentation: https://api.cloudcontrol.com/doc/
 
-## Install (with GOPATH set on your machine)
-----------
+Install
+-------
 
-* Step 1: Get the `cclib` package
+* Get the `cclib` package
 
 ```
-go get github.com/fern4lvarez/gocclib/cclib
+go get -u github.com/fern4lvarez/gocclib/cclib
 ```
 
-* Step 2 (Optional): Run tests
+* Run tests
 
 ```
 $ cd $GOPATH/src/github.com/fern4lvarez/gocclib/cclib
 $ go test -v ./...
 ```
 
-##Usage
+Usage
+-----
 
-```go
+~~~go
 package main
 
 import (
   "fmt"
   "os"
-  "net/url"
 
   cc "github.com/fern4lvarez/gocclib/cclib"
 )
 
 func main() {
+  // Create API instance
   api := cc.NewAPI()
-  err := api.CreateTokenFromFile("path_to_creds_file")
+
+  // Create new user
+  john, err := api.CreateUser("john", "john@example.org", "secret")
   if err != nil {
-    fmt.Printf("%s\n", err.Error())
-    os.Exit(0)
+    fmt.Println(err)
+    os.Exit(1)
   }
+  fmt.Println(john.Username, "was created.")
 
-  // You can use the defined interface methods:
-  apps, _ := api.ReadApps()
-  newApp, _ := api.CreateApp("newapp", "ruby", "git", "")
-  newDep, _ := api.CreateDeployment("newapp", "production", "")
-  depUsers, _ := api.ReadDeploymentUsers("newapp", "production")
-  ...
+  // Activate User with the code provided by email
+  john, err = api.ActivateUser("json", "activationcode")
+  if err != nil {
+    fmt.Println(err)
+    os.Exit(1)
+  }
+  fmt.Println(john.Username, "is active.")
 
-  // Or you can make your own request having a resource and data
-  data := url.Values{}
-  data.Add("name", "staging")
-  resource := fmt.Sprintf("/app/%s/deployment/", "newapp")
-  anotherNewDep, _ := api.Post(resource, data)
-  ...
+  // Basic authentication to API
+  err = api.CreateTokenFromFile("filepath")
+  if err != nil {
+    fmt.Println(err)
+    os.Exit(1)
+  }
+  fmt.Println("Authenticated as", john.Username)
+
+  // Create Application
+  myapp, err := api.CreateApplication("myapp", "ruby", "git", "")
+  if err != nil {
+    fmt.Println(err)
+    os.Exit(1)
+  }
+  fmt.Println(myapp.Name, "was created.")
+
+  // Add user to the application
+  _, err = api.CreateAppUser("myapp", "john@example.org", "")
+  if err != nil {
+    fmt.Println(err)
+    os.Exit(1)
+  }
+  fmt.Println(john.Username, "was added to", myapp.Name)
 }
-```
-
+~~~
 
 ##License
 ----------
