@@ -32,14 +32,16 @@ import (
 	"os"
 	"strconv"
 	"time"
+
+	ms "github.com/mitchellh/mapstructure"
 )
 
 // An API is the entity that make calls and manage
 // the cloudControl interface.
 type API struct {
-	cache string
-	url   string
-	token *Token
+	Cache string
+	Url   string
+	Token *Token
 }
 
 // NewAPI creates a new API instance.
@@ -99,38 +101,23 @@ func (api *API) CreateToken(email string, password string) (err error) {
 
 // CheckToken returns true if api has a token.
 func (api API) CheckToken() bool {
-	if api.Token() == nil {
+	if api.Token == nil {
 		return false
-	} else {
-		return true
 	}
+
+	return true
 }
 
 // SetToken sets a token to an api.
 func (api *API) SetToken(t *Token) {
-	api.token = t
-}
-
-// Cache returns api's cache.
-func (api API) Cache() string {
-	return api.cache
-}
-
-// Url returns api's URL.
-func (api API) Url() string {
-	return api.url
-}
-
-// Token returns api's token.
-func (api API) Token() *Token {
-	return api.token
+	api.Token = t
 }
 
 /*
 	Applications
 */
 
-// CreateApp creates an application having:
+// CreateApplication creates an application having:
 //
 // * Application name
 //
@@ -140,45 +127,48 @@ func (api API) Token() *Token {
 //
 // * Buildpack URL (for custom application type)
 //
-// Returns an interface with just created application details
+// Returns an Application
 // and an error if request does not success.
-func (api *API) CreateApp(appName, appType, repositoryType, buildpackURL string) (interface{}, error) {
-	app := url.Values{}
-	app.Add("name", appName)
-	app.Add("type", appType)
-	app.Add("repository_type", repositoryType)
+func (api *API) CreateApplication(appName, appType, repositoryType, buildpackURL string) (*Application, error) {
+	appValues := url.Values{}
+	appValues.Add("name", appName)
+	appValues.Add("type", appType)
+	appValues.Add("repository_type", repositoryType)
 
 	if buildpackURL != "" {
-		app.Add("buildpack_url", buildpackURL)
+		appValues.Add("buildpack_url", buildpackURL)
 	}
 
-	return api.Post("/app/", app)
+	data, err := api.Post("/app/", appValues)
+	return api.decodeApplication(data, err)
 }
 
-// ReadApps reads applications of current user.
+// ReadApplications reads applications of current user.
 //
-// Returns an interface object with applications details
+// Returns a list of Applications
 // and an error if request does not success.
-func (api *API) ReadApps() (interface{}, error) {
-	return api.Get("/app/")
+func (api *API) ReadApplications() (*[]Application, error) {
+	data, err := api.Get("/app/")
+	return api.decodeApplications(data, err)
 }
 
-// ReadApp reads an application having:
+// ReadApplication reads an application having:
 //
 // * Application name
 //
-// Returns an interface with application details
-// and an error if request does not success.
-func (api *API) ReadApp(appName string) (interface{}, error) {
-	return api.Get(fmt.Sprintf("/app/%s/", appName))
+// Returns an Application and
+// an error if request does not success.
+func (api *API) ReadApplication(appName string) (*Application, error) {
+	data, err := api.Get(fmt.Sprintf("/app/%s/", appName))
+	return api.decodeApplication(data, err)
 }
 
-// DeleteApp deletes an application having:
+// DeleteApplication deletes an application having:
 //
 // * Application name
 //
 // Returns an error if request does not success.
-func (api *API) DeleteApp(appName string) error {
+func (api *API) DeleteApplication(appName string) error {
 	return api.Delete(fmt.Sprintf("/app/%s/", appName))
 }
 
@@ -194,9 +184,9 @@ func (api *API) DeleteApp(appName string) error {
 //
 // * Stack name, optional
 //
-// Returns an interface with just created deployment details
+// Returns the just created Deployment
 // and an error if request does not success.
-func (api *API) CreateDeployment(appName, depName, stack string) (interface{}, error) {
+func (api *API) CreateDeployment(appName, depName, stack string) (*Deployment, error) {
 	dep := url.Values{}
 	if depName != "" {
 		dep.Add("name", depName)
@@ -206,7 +196,8 @@ func (api *API) CreateDeployment(appName, depName, stack string) (interface{}, e
 		dep.Add("stack", stack)
 	}
 
-	return api.Post(fmt.Sprintf("/app/%s/deployment/", appName), dep)
+	data, err := api.Post(fmt.Sprintf("/app/%s/deployment/", appName), dep)
+	return api.decodeDeployment(data, err)
 }
 
 // ReadDeployment reads a deployment having:
@@ -215,22 +206,24 @@ func (api *API) CreateDeployment(appName, depName, stack string) (interface{}, e
 //
 // * Deployment name
 //
-// Returns an interface with deployment details
-// and an error if request does not success.
-func (api *API) ReadDeployment(appName, depName string) (interface{}, error) {
-	return api.Get(fmt.Sprintf("/app/%s/deployment/%s/", appName, depName))
+// Returns a Deployment and
+// an error if request does not success.
+func (api *API) ReadDeployment(appName, depName string) (*Deployment, error) {
+	data, err := api.Get(fmt.Sprintf("/app/%s/deployment/%s/", appName, depName))
+	return api.decodeDeployment(data, err)
 }
 
-// ReadDeployment reads deployment's users having:
+// ReadDeployments reads all user deployments having:
 //
 // * Application name
 //
 // * Deployment name
 //
-// Returns an interface with deployment's users details
-// and an error if request does not success.
-func (api *API) ReadDeploymentUsers(appName, depName string) (interface{}, error) {
-	return api.Get(fmt.Sprintf("/app/%s/deployment/%s/user/", appName, depName))
+// Returns a Deployment and
+// an error if request does not success.
+func (api *API) ReadDeployments(appName string) (*[]Deployment, error) {
+	data, err := api.Get(fmt.Sprintf("/app/%s/deployment/", appName))
+	return api.decodeDeployments(data, err)
 }
 
 // UpdateDeployment updates deployment having:
@@ -249,9 +242,9 @@ func (api *API) ReadDeploymentUsers(appName, depName string) (interface{}, error
 //
 // * Size of containers: from 1 (128MB) to 8 (1024MB)
 //
-// Returns an interface with the updated deployment details
+// Returns the updated Deployment
 // and an error if request does not success.
-func (api *API) UpdateDeployment(appName, depName, version, billingAccount, stack string, containers, size int) (interface{}, error) {
+func (api *API) UpdateDeployment(appName, depName, version, billingAccount, stack string, containers, size int) (*Deployment, error) {
 	if depName == "" {
 		depName = "default"
 	}
@@ -276,7 +269,8 @@ func (api *API) UpdateDeployment(appName, depName, version, billingAccount, stac
 		dep.Add("stack", stack)
 	}
 
-	return api.Put(fmt.Sprintf("/app/%s/deployment/%s/", appName, depName), dep)
+	data, err := api.Put(fmt.Sprintf("/app/%s/deployment/%s/", appName, depName), dep)
+	return api.decodeDeployment(data, err)
 }
 
 // DeleteDeployment deletes a deployment having:
@@ -302,13 +296,15 @@ func (api *API) DeleteDeployment(appName, depName string) error {
 //
 // * Deployment name
 //
-// Returns an interface with just created alias details
+// Returns the just created Alias
 // and an error if request does not success.
-func (api *API) CreateAlias(appName, aliasName, depName string) (interface{}, error) {
-	alias := url.Values{}
-	alias.Add("name", aliasName)
+func (api *API) CreateAlias(appName, aliasName, depName string) (*Alias, error) {
 
-	return api.Post(fmt.Sprintf("/app/%s/deployment/%s/alias/", appName, depName), alias)
+	aliasValues := url.Values{}
+	aliasValues.Add("name", aliasName)
+
+	data, err := api.Post(fmt.Sprintf("/app/%s/deployment/%s/alias/", appName, depName), aliasValues)
+	return api.decodeAlias(data, err)
 }
 
 // ReadAliases reads all deployment's aliases having:
@@ -319,8 +315,9 @@ func (api *API) CreateAlias(appName, aliasName, depName string) (interface{}, er
 //
 // Returns an interface with aliases details
 // and an error if request does not success.
-func (api *API) ReadAliases(appName, depName string) (interface{}, error) {
-	return api.Get(fmt.Sprintf("/app/%s/deployment/%s/alias/", appName, depName))
+func (api *API) ReadAliases(appName, depName string) (*[]Alias, error) {
+	data, err := api.Get(fmt.Sprintf("/app/%s/deployment/%s/alias/", appName, depName))
+	return api.decodeAliases(data, err)
 }
 
 // ReadAlias reads a deployment's alias having:
@@ -331,10 +328,12 @@ func (api *API) ReadAliases(appName, depName string) (interface{}, error) {
 //
 // * Deployment name
 //
-// Returns an interface with alias details
+// Returns an Alias
 // and an error if request does not success.
-func (api *API) ReadAlias(appName, aliasName, depName string) (interface{}, error) {
-	return api.Get(fmt.Sprintf("/app/%s/deployment/%s/alias/%s/", appName, depName, aliasName))
+func (api *API) ReadAlias(appName, aliasName, depName string) (*Alias, error) {
+	data, err := api.Get(fmt.Sprintf("/app/%s/deployment/%s/alias/%s/", appName, depName, aliasName))
+	return api.decodeAlias(data, err)
+
 }
 
 // DeleteAlias removes an alias from a deployment having:
@@ -366,21 +365,22 @@ func (api *API) DeleteAlias(appName, aliasName, depName string) error {
 //
 // * Size, optional
 //
-// Returns an interface with just executed worker details
+// Returns the just created Worker
 // and an error if request does not success.
-func (api *API) CreateWorker(appName, depName, command, params, size string) (interface{}, error) {
-	worker := url.Values{}
-	worker.Add("command", command)
+func (api *API) CreateWorker(appName, depName, command, params, size string) (*Worker, error) {
+	workerValues := url.Values{}
+	workerValues.Add("command", command)
 
 	if params != "" {
-		worker.Add("params", params)
+		workerValues.Add("params", params)
 	}
 
 	if size != "" {
-		worker.Add("size", size)
+		workerValues.Add("size", size)
 	}
 
-	return api.Post(fmt.Sprintf("/app/%s/deployment/%s/worker/", appName, depName), worker)
+	data, err := api.Post(fmt.Sprintf("/app/%s/deployment/%s/worker/", appName, depName), workerValues)
+	return api.decodeWorker(data, err)
 }
 
 // ReadWorkers reads all deployment's workers having:
@@ -389,10 +389,11 @@ func (api *API) CreateWorker(appName, depName, command, params, size string) (in
 //
 // * Deployment name
 //
-// Returns an interface with workers details
+// Returns a list of workers
 // and an error if request does not success.
-func (api *API) ReadWorkers(appName, depName string) (interface{}, error) {
-	return api.Get(fmt.Sprintf("/app/%s/deployment/%s/worker/", appName, depName))
+func (api *API) ReadWorkers(appName, depName string) (*[]Worker, error) {
+	data, err := api.Get(fmt.Sprintf("/app/%s/deployment/%s/worker/", appName, depName))
+	return api.decodeWorkers(data, err)
 }
 
 // ReadWorker reads a deployment's worker having:
@@ -403,10 +404,11 @@ func (api *API) ReadWorkers(appName, depName string) (interface{}, error) {
 //
 // * Worker ID
 //
-// Returns an interface with worker details
+// Returns a Worker
 // and an error if request does not success.
-func (api *API) ReadWorker(appName, depName, workerId string) (interface{}, error) {
-	return api.Get(fmt.Sprintf("/app/%s/deployment/%s/worker/%s/", appName, depName, workerId))
+func (api *API) ReadWorker(appName, depName, workerId string) (*Worker, error) {
+	data, err := api.Get(fmt.Sprintf("/app/%s/deployment/%s/worker/%s/", appName, depName, workerId))
+	return api.decodeWorker(data, err)
 }
 
 // DeleteWorker removes a worker from a deployment having:
@@ -434,13 +436,14 @@ func (api *API) DeleteWorker(appName, depName, workerId string) error {
 //
 // * Cronjob URL
 //
-// Returns an interface with just created cronjob details
+// Returns the just created Cronjob
 // and an error if request does not success.
-func (api *API) CreateCronjob(appName, depName, urlJob string) (interface{}, error) {
-	cronjob := url.Values{}
-	cronjob.Add("url", urlJob)
+func (api *API) CreateCronjob(appName, depName, urlJob string) (*Cronjob, error) {
+	cronjobValues := url.Values{}
+	cronjobValues.Add("url", urlJob)
 
-	return api.Post(fmt.Sprintf("/app/%s/deployment/%s/cron/", appName, depName), cronjob)
+	data, err := api.Post(fmt.Sprintf("/app/%s/deployment/%s/cron/", appName, depName), cronjobValues)
+	return api.decodeCronjob(data, err)
 }
 
 // ReadCronjobs reads all deployment's cronjobs having:
@@ -449,10 +452,11 @@ func (api *API) CreateCronjob(appName, depName, urlJob string) (interface{}, err
 //
 // * Deployment name
 //
-// Returns an interface with cronjobs details
+// Returns a Cronjob
 // and an error if request does not success.
-func (api *API) ReadCronjobs(appName, depName string) (interface{}, error) {
-	return api.Get(fmt.Sprintf("/app/%s/deployment/%s/cron/", appName, depName))
+func (api *API) ReadCronjobs(appName, depName string) (*[]Cronjob, error) {
+	data, err := api.Get(fmt.Sprintf("/app/%s/deployment/%s/cron/", appName, depName))
+	return api.decodeCronjobs(data, err)
 }
 
 // ReadCronjob reads a deployment's cronjob having:
@@ -463,10 +467,11 @@ func (api *API) ReadCronjobs(appName, depName string) (interface{}, error) {
 //
 // * Cronjob ID
 //
-// Returns an interface with worker details
+// Returns a Cronjob
 // and an error if request does not success.
-func (api *API) ReadCronjob(appName, depName, cronjobId string) (interface{}, error) {
-	return api.Get(fmt.Sprintf("/app/%s/deployment/%s/cron/%s/", appName, depName, cronjobId))
+func (api *API) ReadCronjob(appName, depName, cronjobId string) (*Cronjob, error) {
+	data, err := api.Get(fmt.Sprintf("/app/%s/deployment/%s/cron/%s/", appName, depName, cronjobId))
+	return api.decodeCronjob(data, err)
 }
 
 // DeleteCronjob removes a cronjob from a deployment having:
@@ -494,22 +499,30 @@ func (api *API) DeleteCronjob(appName, depName, cronjobId string) error {
 //
 // * Addon name
 //
-// * Options as a pointer to a map of string to strings, optional
+// * Settings for the add-on, optional. eg:
+//		settings := &Settings{
+//			"foo":   "bar",
+//			"hello": "world",
+//			"mybool": "true",
+//			"mynumber": "42"
+//		}
 //
-// Returns an interface with just created addon details
+//
+// Returns the just created Addon
 // and an error if request does not success.
-func (api *API) CreateAddon(appName, depName, addonName string, options *map[string]string) (interface{}, error) {
-	addon := url.Values{}
-	addon.Add("addon", addonName)
+func (api *API) CreateAddon(appName, depName, addonName string, settings *Settings) (*Addon, error) {
+	addonValues := url.Values{}
+	addonValues.Add("addon", addonName)
 
-	o, err := json.Marshal(&options)
+	o, err := json.Marshal(&settings)
 	if err != nil {
 		return nil, err
 	}
 
-	addon.Add("options", string(o))
+	addonValues.Add("options", string(o))
 
-	return api.Post(fmt.Sprintf("/app/%s/deployment/%s/addon/", appName, depName), addon)
+	data, err := api.Post(fmt.Sprintf("/app/%s/deployment/%s/addon/", appName, depName), addonValues)
+	return api.decodeAddon(data, err)
 }
 
 // ReadCronjobs reads all deployment's addons having:
@@ -520,13 +533,19 @@ func (api *API) CreateAddon(appName, depName, addonName string, options *map[str
 //
 // If Application and Deployment names are empty,
 // it returns of available addons.
-// Otherwise it returns an interface with deployment's addons details
+// Otherwise it returns deployment's Addons
 // and an error if request does not success.
-func (api *API) ReadAddons(appName, depName string) (interface{}, error) {
+func (api *API) ReadAddons(appName, depName string) (*[]Addon, error) {
+	var data interface{}
+	var err error
+
 	if appName != "" && depName != "" {
-		return api.Get(fmt.Sprintf("/app/%s/deployment/%s/addon/", appName, depName))
+		data, err = api.Get(fmt.Sprintf("/app/%s/deployment/%s/addon/", appName, depName))
+	} else {
+		data, err = api.Get("/addon/")
 	}
-	return api.Get("/addon/")
+
+	return api.decodeAddons(data, err)
 }
 
 // ReadAddon reads a deployment's addon having:
@@ -539,8 +558,9 @@ func (api *API) ReadAddons(appName, depName string) (interface{}, error) {
 //
 // Returns an interface with addon details
 // and an error if request does not success.
-func (api *API) ReadAddon(appName, depName, addonName string) (interface{}, error) {
-	return api.Get(fmt.Sprintf("/app/%s/deployment/%s/addon/%s/", appName, depName, addonName))
+func (api *API) ReadAddon(appName, depName, addonName string) (*Addon, error) {
+	data, err := api.Get(fmt.Sprintf("/app/%s/deployment/%s/addon/%s/", appName, depName, addonName))
+	return api.decodeAddon(data, err)
 }
 
 // UpdateAddon updates addon having:
@@ -553,19 +573,25 @@ func (api *API) ReadAddon(appName, depName, addonName string) (interface{}, erro
 //
 // * New Addon name to update to
 //
-// * Addon settings to update, optional
+// * Settings for the add-on, optional. eg:
+//		settings := &Settings{
+//			"foo":   "bar",
+//			"hello": "world",
+//			"mybool": "true",
+//			"mynumber": "42"
+//		}
 //
 // * Force update in case of conflict
 //
-// Returns an interface with the updated addon details
+// Returns the updated Addon
 // and an error if request does not success.
-func (api *API) UpdateAddon(appName, depName, addonName, addonNameToUpdateTo string, settings *map[string]interface{}, force bool) (interface{}, error) {
+func (api *API) UpdateAddon(appName, depName, addonName, addonNameToUpdateTo string, settings *Settings, force bool) (*Addon, error) {
 	if depName == "" {
 		depName = "default"
 	}
 
-	addon := url.Values{}
-	addon.Add("addon", addonNameToUpdateTo)
+	addonValues := url.Values{}
+	addonValues.Add("addon", addonNameToUpdateTo)
 
 	if settings != nil {
 		s, err := json.Marshal(&settings)
@@ -573,14 +599,15 @@ func (api *API) UpdateAddon(appName, depName, addonName, addonNameToUpdateTo str
 			return nil, err
 		}
 
-		addon.Add("settings", string(s))
+		addonValues.Add("settings", string(s))
 	}
 
 	if force {
-		addon.Add("force", "true")
+		addonValues.Add("force", "true")
 	}
 
-	return api.Put(fmt.Sprintf("/app/%s/deployment/%s/addon/%s/", appName, depName, addonName), addon)
+	data, err := api.Put(fmt.Sprintf("/app/%s/deployment/%s/addon/%s/", appName, depName, addonName), addonValues)
+	return api.decodeAddon(data, err)
 }
 
 // DeleteAddon deletes an addon having:
@@ -608,27 +635,29 @@ func (api *API) DeleteAddon(appName, depName, addonName string) error {
 //
 // * User role, optional
 //
-// Returns an interface with just created user details
+// Returns the just added User
 // and an error if request does not success.
-func (api *API) CreateAppUser(appName, userEmail, role string) (interface{}, error) {
-	user := url.Values{}
-	user.Add("email", userEmail)
+func (api *API) CreateAppUser(appName, userEmail, role string) (*User, error) {
+	userValues := url.Values{}
+	userValues.Add("email", userEmail)
 
 	if role != "" {
-		user.Add("role", role)
+		userValues.Add("role", role)
 	}
 
-	return api.Post(fmt.Sprintf("/app/%s/user/", appName), user)
+	data, err := api.Post(fmt.Sprintf("/app/%s/user/", appName), userValues)
+	return api.decodeUser(data, err)
 }
 
 // ReadAppUsers reads all application's users having:
 //
 // * Application name
 //
-// Returns an interface with users details
+// Returns a list of application Users
 // and an error if request does not success.
-func (api *API) ReadAppUsers(appName string) (interface{}, error) {
-	return api.Get(fmt.Sprintf("/app/%s/user/", appName))
+func (api *API) ReadAppUsers(appName string) (*[]User, error) {
+	data, err := api.Get(fmt.Sprintf("/app/%s/user/", appName))
+	return api.decodeUsers(data, err)
 }
 
 // DeleteAppUser removes an user from an application having:
@@ -656,17 +685,31 @@ func (api *API) DeleteAppUser(appName, userName string) error {
 //
 // * User role, optional
 //
-// Returns an interface with just created user details
+// Returns the just created User
 // and an error if request does not success.
-func (api *API) CreateDeploymentUser(appName, depName, userEmail, role string) (interface{}, error) {
-	user := url.Values{}
-	user.Add("email", userEmail)
+func (api *API) CreateDeploymentUser(appName, depName, userEmail, role string) (*User, error) {
+	userValues := url.Values{}
+	userValues.Add("email", userEmail)
 
 	if role != "" {
-		user.Add("role", role)
+		userValues.Add("role", role)
 	}
 
-	return api.Post(fmt.Sprintf("/app/%s/deployment/%s/user/", appName, depName), user)
+	data, err := api.Post(fmt.Sprintf("/app/%s/deployment/%s/user/", appName, depName), userValues)
+	return api.decodeUser(data, err)
+}
+
+// ReadDeploymentUsers reads deployment's users having:
+//
+// * Application name
+//
+// * Deployment name
+//
+// Returns an interface with deployment's users details
+// and an error if request does not success.
+func (api *API) ReadDeploymentUsers(appName, depName string) (*[]User, error) {
+	data, err := api.Get(fmt.Sprintf("/app/%s/deployment/%s/user/", appName, depName))
+	return api.decodeUsers(data, err)
 }
 
 // DeleteDeploymentUser removes an user from a deployment having:
@@ -694,33 +737,36 @@ func (api *API) DeleteDeploymentUser(appName, depName, userName string) error {
 //
 // * User password
 //
-// Returns an interface with just created user details
+// Returns the just created User
 // and an error if request does not success.
-func (api *API) CreateUser(userName, userEmail, password string) (interface{}, error) {
-	user := url.Values{}
-	user.Add("username", userName)
-	user.Add("email", userEmail)
-	user.Add("password", password)
+func (api *API) CreateUser(userName, userEmail, password string) (*User, error) {
+	userValues := url.Values{}
+	userValues.Add("username", userName)
+	userValues.Add("email", userEmail)
+	userValues.Add("password", password)
 
-	return api.Post("/user/", user)
+	data, err := api.Post("/user/", userValues)
+	return api.decodeUser(data, err)
 }
 
 // ReadUsers gets users. Usually just your own.
 //
-// Returns an interface with users details
+// Returns a list of Users
 // and an error if request does not success.
-func (api *API) ReadUsers() (interface{}, error) {
-	return api.Get("/user/")
+func (api *API) ReadUsers() (*[]User, error) {
+	data, err := api.Get("/user/")
+	return api.decodeUsers(data, err)
 }
 
 // ReadUser reads a user having:
 //
 // * User name
 //
-// Returns an interface with user details
+// Returns a User
 // and an error if request does not success.
-func (api *API) ReadUser(userName string) (interface{}, error) {
-	return api.Get(fmt.Sprintf("/user/%s/", userName))
+func (api *API) ReadUser(userName string) (*User, error) {
+	data, err := api.Get(fmt.Sprintf("/user/%s/", userName))
+	return api.decodeUser(data, err)
 }
 
 // ActivateUser activates a new user having:
@@ -729,15 +775,16 @@ func (api *API) ReadUser(userName string) (interface{}, error) {
 //
 // * Activation code for activation after registration
 //
-// Returns an interface with the activated user details
+// Returns the activated User
 // and an error if request does not success.
-func (api *API) ActivateUser(userName, activationCode string) (interface{}, error) {
-	user := url.Values{}
+func (api *API) ActivateUser(userName, activationCode string) (*User, error) {
+	userValues := url.Values{}
 	if activationCode != "" {
-		user.Add("activation_code", activationCode)
+		userValues.Add("activation_code", activationCode)
 	}
 
-	return api.Put(fmt.Sprintf("/user/%s/", userName), user)
+	data, err := api.Put(fmt.Sprintf("/user/%s/", userName), userValues)
+	return api.decodeUser(data, err)
 }
 
 // UpdateUser updates an existing user having:
@@ -754,24 +801,26 @@ func (api *API) ActivateUser(userName, activationCode string) (interface{}, erro
 //
 // NOTE: At least one of the arguments must be provided.
 //
-// Returns an interface with the updated user details
+// Returns the updated User
 // and an error if request does not success.
-func (api *API) UpdateUser(userName, firstName, lastName, password, email string) (interface{}, error) {
-	user := url.Values{}
+func (api *API) UpdateUser(userName, firstName, lastName, password, email string) (*User, error) {
+	userValues := url.Values{}
 	if firstName != "" {
-		user.Add("first_name", firstName)
+		userValues.Add("first_name", firstName)
 	}
 	if lastName != "" {
-		user.Add("last_name", lastName)
+		userValues.Add("last_name", lastName)
 	}
 	if password != "" {
-		user.Add("password", password)
+		userValues.Add("password", password)
 	}
 	if email != "" {
-		user.Add("email", email)
+		userValues.Add("email", email)
 	}
 
-	return api.Put(fmt.Sprintf("/user/%s/", userName), user)
+	data, err := api.Put(fmt.Sprintf("/user/%s/", userName), userValues)
+	return api.decodeUser(data, err)
+
 }
 
 // DeleteUser deletes as user having:
@@ -793,35 +842,38 @@ func (api *API) DeleteUser(userName string) error {
 //
 // * Public key
 //
-// Returns an interface with just created key details
+// Returns the just created Key
 // and an error if request does not success.
-func (api *API) CreateUserKey(userName, publicKey string) (interface{}, error) {
-	key := url.Values{}
-	key.Add("key", publicKey)
+func (api *API) CreateUserKey(userName, publicKey string) (*Key, error) {
+	keyValues := url.Values{}
+	keyValues.Add("key", publicKey)
 
-	return api.Post(fmt.Sprintf("/user/%s/key/", userName), key)
+	data, err := api.Post(fmt.Sprintf("/user/%s/key/", userName), keyValues)
+	return api.decodeKey(data, err)
 }
 
 // ReadUserKeys gets all user keys having:
 //
 // * UserName
 //
-// Returns an interface with keys details
+// Returns a list of Keys
 // and an error if request does not success.
-func (api *API) ReadUserKeys(userName string) (interface{}, error) {
-	return api.Get(fmt.Sprintf("/user/%s/key/", userName))
+func (api *API) ReadUserKeys(userName string) (*[]Key, error) {
+	data, err := api.Get(fmt.Sprintf("/user/%s/key/", userName))
+	return api.decodeKeys(data, err)
 }
 
 // ReadUserKey reads a user's key having:
 //
 // * User name
 //
-// * Key ID
+// * Key Id
 //
-// Returns an interface with key details
+// Returns the Key
 // and an error if request does not success.
-func (api *API) ReadUserKey(userName, keyID string) (interface{}, error) {
-	return api.Get(fmt.Sprintf("/user/%s/key/%s/", userName, keyID))
+func (api *API) ReadUserKey(userName, keyId string) (*Key, error) {
+	data, err := api.Get(fmt.Sprintf("/user/%s/key/%s/", userName, keyId))
+	return api.decodeKey(data, err)
 }
 
 // DeleteUserKey deletes a user's key having:
@@ -849,16 +901,19 @@ func (api *API) DeleteUserKey(userName, keyID string) error {
 //
 // * Last time from where to read on, optional. Make use of a time.Time struct pointer.
 //
-// Returns an interface with log entries
+// Returns a list of Logs
 // and an error if request does not success.
-func (api *API) ReadLog(appName, depName, logType string, lastTime *time.Time) (interface{}, error) {
+func (api *API) ReadLog(appName, depName, logType string, lastTime *time.Time) (*[]Log, error) {
 	var resource string
+
 	if lastTime == nil {
 		resource = fmt.Sprintf("/app/%s/deployment/%s/log/%s/", appName, depName, logType)
 	} else {
-		resource = fmt.Sprintf("/app/%s/deployment/%s/log/%s/?timestamp=%s", appName, depName, logType, buildTimestamp(lastTime))
+		resource = fmt.Sprintf("/app/%s/deployment/%s/log/%s/?timestamp=%s/", appName, depName, logType, buildTimestamp(lastTime))
 	}
-	return api.Get(resource)
+
+	data, err := api.Get(resource)
+	return api.decodeLogs(data, err)
 }
 
 /*
@@ -873,20 +928,23 @@ func (api *API) ReadLog(appName, depName, logType string, lastTime *time.Time) (
 //
 // * Billing data in url.Values format
 //
-// Returns an interface with just created billing account details
+// Returns just created BillingAccount
 // and an error if request does not success.
-func (api *API) CreateBillingAccount(userName, billingName string, billingData url.Values) (interface{}, error) {
-	return api.Post(fmt.Sprintf("/user/%s/billing/%s/", userName, billingName), billingData)
+func (api *API) CreateBillingAccount(userName, billingName string, billingData url.Values) (*BillingAccount, error) {
+	data, err := api.Post(fmt.Sprintf("/user/%s/billing/%s/", userName, billingName), billingData)
+	return api.decodeBillingAccount(data, err)
+
 }
 
 // ReadBillingAccounts gets all billing accounts from a user having:
 //
 // * User name
 //
-// Returns an interface with user's billing accounts
+// Returns a list of user's BillingAccounts
 // and an error if request does not success.
-func (api *API) ReadBillingAccounts(userName string) (interface{}, error) {
-	return api.Get(fmt.Sprintf("/user/%s/billing/", userName))
+func (api *API) ReadBillingAccounts(userName string) (*[]BillingAccount, error) {
+	data, err := api.Get(fmt.Sprintf("/user/%s/billing/", userName))
+	return api.decodeBillingAccounts(data, err)
 }
 
 // UpdateBillingAccount updates an existing user's billing account having:
@@ -897,10 +955,11 @@ func (api *API) ReadBillingAccounts(userName string) (interface{}, error) {
 //
 // * Billing data in url.Values format
 //
-// Returns an interface with the updated user's billing account details
+// Returns updated user's BillingAccount
 // and an error if request does not success.
-func (api *API) UpdateBillingAccount(userName, billingName string, billingData url.Values) (interface{}, error) {
-	return api.Put(fmt.Sprintf("/user/%s/billing/%s/", userName, billingName), billingData)
+func (api *API) UpdateBillingAccount(userName, billingName string, billingData url.Values) (*BillingAccount, error) {
+	data, err := api.Put(fmt.Sprintf("/user/%s/billing/%s/", userName, billingName), billingData)
+	return api.decodeBillingAccount(data, err)
 }
 
 /*
@@ -916,7 +975,7 @@ func (api *API) Get(resource string) (interface{}, error) {
 		return nil, err
 	}
 
-	request := NewRequest("", "", api.Token())
+	request := NewRequest("", "", api.Token)
 
 	content, err := request.Get(resource)
 	if err != nil {
@@ -935,7 +994,7 @@ func (api *API) Post(resource string, data url.Values) (interface{}, error) {
 		return nil, err
 	}
 
-	request := NewRequest("", "", api.Token())
+	request := NewRequest("", "", api.Token)
 
 	content, err := request.Post(resource, data)
 	if err != nil {
@@ -954,7 +1013,7 @@ func (api *API) Put(resource string, data url.Values) (interface{}, error) {
 		return nil, err
 	}
 
-	request := NewRequest("", "", api.Token())
+	request := NewRequest("", "", api.Token)
 
 	content, err := request.Put(resource, data)
 	if err != nil {
@@ -972,7 +1031,7 @@ func (api *API) Delete(resource string) error {
 		return err
 	}
 
-	request := NewRequest("", "", api.Token())
+	request := NewRequest("", "", api.Token)
 
 	content, err := request.Delete(resource)
 	if err != nil {
@@ -981,4 +1040,268 @@ func (api *API) Delete(resource string) error {
 
 	_, err = decodeContent(content)
 	return err
+}
+
+/*
+	Type decoders
+*/
+
+func (api *API) decodeApplication(data interface{}, err error) (*Application, error) {
+	if err != nil {
+		return nil, err
+	}
+
+	var application Application
+	if err = ms.Decode(data, &application); err != nil {
+		return nil, err
+	}
+
+	return &application, nil
+}
+
+func (api *API) decodeApplications(data interface{}, err error) (*[]Application, error) {
+	if err != nil {
+		return nil, err
+	}
+
+	var applications []Application
+	if err = ms.Decode(data, &applications); err != nil {
+		return nil, err
+	}
+
+	return &applications, nil
+}
+
+func (api *API) decodeDeployment(data interface{}, err error) (*Deployment, error) {
+	if err != nil {
+		return nil, err
+	}
+
+	var deployment Deployment
+	if err = ms.Decode(data, &deployment); err != nil {
+		return nil, err
+	}
+
+	return &deployment, nil
+}
+
+func (api *API) decodeDeployments(data interface{}, err error) (*[]Deployment, error) {
+	if err != nil {
+		return nil, err
+	}
+
+	var deployments []Deployment
+	if err = ms.Decode(data, &deployments); err != nil {
+		return nil, err
+	}
+
+	return &deployments, nil
+}
+
+func (api *API) decodeAlias(data interface{}, err error) (*Alias, error) {
+	if err != nil {
+		return nil, err
+	}
+
+	var alias Alias
+	if err = ms.Decode(data, &alias); err != nil {
+		return nil, err
+	}
+
+	return &alias, nil
+}
+
+func (api *API) decodeAliases(data interface{}, err error) (*[]Alias, error) {
+	if err != nil {
+		return nil, err
+	}
+
+	var aliases []Alias
+	if err = ms.Decode(data, &aliases); err != nil {
+		return nil, err
+	}
+
+	return &aliases, nil
+}
+
+func (api *API) decodeWorker(data interface{}, err error) (*Worker, error) {
+	if err != nil {
+		return nil, err
+	}
+
+	var worker Worker
+	if err = ms.Decode(data, &worker); err != nil {
+		return nil, err
+	}
+
+	return &worker, nil
+}
+
+func (api *API) decodeWorkers(data interface{}, err error) (*[]Worker, error) {
+	if err != nil {
+		return nil, err
+	}
+
+	var workers []Worker
+	if err = ms.Decode(data, &workers); err != nil {
+		return nil, err
+	}
+
+	return &workers, nil
+}
+
+func (api *API) decodeCronjob(data interface{}, err error) (*Cronjob, error) {
+	if err != nil {
+		return nil, err
+	}
+
+	var cronjob Cronjob
+	if err = ms.Decode(data, &cronjob); err != nil {
+		return nil, err
+	}
+
+	return &cronjob, nil
+}
+
+func (api *API) decodeCronjobs(data interface{}, err error) (*[]Cronjob, error) {
+	if err != nil {
+		return nil, err
+	}
+
+	var cronjobs []Cronjob
+	if err = ms.Decode(data, &cronjobs); err != nil {
+		return nil, err
+	}
+
+	return &cronjobs, nil
+}
+
+func (api *API) decodeAddon(data interface{}, err error) (*Addon, error) {
+	if err != nil {
+		return nil, err
+	}
+
+	var addon Addon
+	if err = ms.Decode(data, &addon); err != nil {
+		return nil, err
+	}
+
+	return &addon, nil
+}
+
+func (api *API) decodeAddons(data interface{}, err error) (*[]Addon, error) {
+	if err != nil {
+		return nil, err
+	}
+
+	var addons []Addon
+	if err = ms.Decode(data, &addons); err != nil {
+		return nil, err
+	}
+
+	return &addons, nil
+}
+
+func (api *API) decodeUser(data interface{}, err error) (*User, error) {
+	if err != nil {
+		return nil, err
+	}
+
+	var user User
+	if err = ms.Decode(data, &user); err != nil {
+		return nil, err
+	}
+
+	return &user, nil
+}
+
+func (api *API) decodeUsers(data interface{}, err error) (*[]User, error) {
+	if err != nil {
+		return nil, err
+	}
+
+	var users []User
+	if err = ms.Decode(data, &users); err != nil {
+		return nil, err
+	}
+
+	return &users, nil
+}
+
+func (api *API) decodeKey(data interface{}, err error) (*Key, error) {
+	if err != nil {
+		return nil, err
+	}
+
+	var ey Key
+	if err = ms.Decode(data, &ey); err != nil {
+		return nil, err
+	}
+
+	return &ey, nil
+}
+
+func (api *API) decodeKeys(data interface{}, err error) (*[]Key, error) {
+	if err != nil {
+		return nil, err
+	}
+
+	var eys []Key
+	if err = ms.Decode(data, &eys); err != nil {
+		return nil, err
+	}
+
+	return &eys, nil
+}
+
+func (api *API) decodeLog(data interface{}, err error) (*Log, error) {
+	if err != nil {
+		return nil, err
+	}
+
+	var log Log
+	if err = ms.Decode(data, &log); err != nil {
+		return nil, err
+	}
+
+	return &log, nil
+}
+
+func (api *API) decodeLogs(data interface{}, err error) (*[]Log, error) {
+	if err != nil {
+		return nil, err
+	}
+
+	var logs []Log
+	if err = ms.Decode(data, &logs); err != nil {
+		return nil, err
+	}
+
+	return &logs, nil
+}
+
+func (api *API) decodeBillingAccount(data interface{}, err error) (*BillingAccount, error) {
+	if err != nil {
+		return nil, err
+	}
+
+	var billingAccount BillingAccount
+	if err = ms.Decode(data, &billingAccount); err != nil {
+		return nil, err
+	}
+
+	return &billingAccount, nil
+}
+
+func (api *API) decodeBillingAccounts(data interface{}, err error) (*[]BillingAccount, error) {
+	if err != nil {
+		return nil, err
+	}
+
+	var billingAccounts []BillingAccount
+	if err = ms.Decode(data, &billingAccounts); err != nil {
+		return nil, err
+	}
+
+	return &billingAccounts, nil
 }
