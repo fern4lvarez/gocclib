@@ -10,6 +10,7 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"reflect"
 	"strconv"
 	"time"
 	"unicode/utf8"
@@ -93,4 +94,16 @@ func buildTimestamp(dt *time.Time) string {
 	u := dt.Unix()
 
 	return fmt.Sprintf("%s.%s", strconv.Itoa(int(u)), m)
+}
+
+// taken from http://play.golang.org/p/fpkK48W9Rp
+func isNil(value interface{}) bool {
+	if value == nil {
+		return true
+	}
+	if !reflect.ValueOf(value).Elem().IsValid() {
+		return true
+	}
+
+	return false
 }

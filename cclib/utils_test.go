@@ -161,5 +161,18 @@ func TestBuildTimestamp(t *testing.T) {
 	if ts != tsExpected {
 		t.Errorf(msgFail, "buildTimestamp", tsExpected, ts)
 	}
+}
 
+func TestIsNil(t *testing.T) {
+	// Given
+	var value interface{} = nil
+	expectedResponse := true
+
+	// When
+	isNilResponse := isNil(value)
+
+	// Then
+	if isNilResponse != expectedResponse {
+		t.Errorf(msgFail, "isNil", expectedResponse, isNilResponse)
+	}
 }

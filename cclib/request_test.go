@@ -13,14 +13,16 @@ func TestRequest(t *testing.T) {
 	// Given
 	email := "user@example.com"
 	password := "password"
-	token := &Token{
-		"token": "1234567890",
+	api := &API{
+		url: "https://api.com",
+		token: &Token{
+			"token": "1234567890",
+		},
+		tokenSourceUrl: "https://api.com/token/",
 	}
-	tokenSourceUrl := "https://api.com/token/"
-	url := "https://api.com"
 
 	// When
-	req := NewRequest(email, password, url, token, tokenSourceUrl)
+	req := NewRequest(email, password, api)
 
 	// Then
 	if req.Email != email {
@@ -29,17 +31,8 @@ func TestRequest(t *testing.T) {
 	if req.Password != password {
 		t.Errorf(msgFail, "NewRequest and Password", password, req.Password)
 	}
-	if req.Token != token {
-		t.Errorf(msgFail, "NewRequest and Token", token, req.Token)
-	}
-	if req.TokenSourceUrl != tokenSourceUrl {
-		t.Errorf(msgFail, "NewRequest and TokenSourceUrl", tokenSourceUrl, req.Token)
-	}
-	if req.Cache != CACHE {
-		t.Errorf(msgFail, "NewRequest and Cache", CACHE, req.Cache)
-	}
-	if req.Url != url {
-		t.Errorf(msgFail, "NewRequest and Url", url, req.Url)
+	if req.Api != api {
+		t.Errorf(msgFail, "NewRequest and Api", api, req.Api)
 	}
 	if req.SslCheck != SSL_CHECK {
 		t.Errorf(msgFail, "NewRequest and SSLCheck", SSL_CHECK, req.SslCheck)

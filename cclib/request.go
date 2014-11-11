@@ -14,15 +14,11 @@ import (
 
 // Request contains the API request basic information
 type Request struct {
-	Email          string
-	Password       string
-	Token          *Token
-	TokenSourceUrl string
-	Version        string
-	Cache          string
-	Url            string
-	SslCheck       bool
-	CaCerts        *x509.CertPool
+	Email    string
+	Password string
+	SslCheck bool
+	Api      Api
+	CaCerts  *x509.CertPool
 }
 
 // New request creates a new api request having:
@@ -34,16 +30,12 @@ type Request struct {
 // * User token
 //
 // Returns a new request pointer
-func NewRequest(email string, password string, url string, token *Token, tokenSourceUrl string) *Request {
+func NewRequest(email string, password string, api Api) *Request {
 	return &Request{
 		email,
 		password,
-		token,
-		tokenSourceUrl,
-		VERSION,
-		CACHE,
-		url,
 		SSL_CHECK,
+		api,
 		CA_CERTS}
 }
 
@@ -57,21 +49,6 @@ func (request *Request) SetPassword(password string) {
 	request.Password = password
 }
 
-// SetToken sets a token to a request
-func (request *Request) SetToken(token *Token) {
-	request.Token = token
-}
-
-// SetCache sets a cache to a request
-func (request *Request) SetCache(cache string) {
-	request.Cache = cache
-}
-
-// SetUrl sets a URL to a request
-func (request *Request) SetUrl(url string) {
-	request.Url = url
-}
-
 // EnableSSLCheck enables the SSL certificate verification
 func (request *Request) EnableSSLCheck() {
 	request.SslCheck = true
@@ -80,6 +57,11 @@ func (request *Request) EnableSSLCheck() {
 // DisableSSLCheck disables the SSL certificate verification
 func (request *Request) DisableSSLCheck() {
 	request.SslCheck = false
+}
+
+// SetApi sets an Api to a request
+func (request *Request) SetApi(api Api) {
+	request.Api = api
 }
 
 // SetCaCerts sets a set of root CA to a request
@@ -113,9 +95,9 @@ func (request Request) PostToken() ([]byte, error) {
 }
 
 func (request Request) do(resource string, method string, data url.Values, isTokenReq bool) ([]byte, error) {
-	request_url := request.Url
+	request_url := request.Api.Url()
 	if isTokenReq {
-		request_url = request.TokenSourceUrl
+		request_url = request.Api.TokenSourceUrl()
 	}
 
 	u, err := url.ParseRequestURI(request_url)
@@ -141,8 +123,8 @@ func (request Request) do(resource string, method string, data url.Values, isTok
 		return nil, err
 	}
 
-	if request.Token != nil {
-		r.Header.Add("Authorization", "cc_auth_token=\""+request.Token.Key()+"\"")
+	if !isNil(request.Api.Token()) {
+		r.Header.Add("Authorization", "cc_auth_token=\""+request.Api.Token().Key()+"\"")
 	} else if request.Email != "" && request.Password != "" {
 		r.SetBasicAuth(request.Email, request.Password)
 	}
