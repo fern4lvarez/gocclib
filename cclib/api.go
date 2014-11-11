@@ -116,7 +116,7 @@ func NewCustomAPI(url string, token *Token, tokenSourceUrl string, registerAddon
 	}
 
 	if registerAddonUrl == "" {
-		registerAddonUrl = url
+		registerAddonUrl = fmt.Sprintf("%s%s", url, "/provider/addons")
 	}
 
 	return &API{CACHE, url, token, tokenSourceUrl, registerAddonUrl}
@@ -606,6 +606,22 @@ func (api *API) DeleteCronjob(appName, depName, cronjobId string) error {
 /*
 	Addons
 */
+
+// RegisterAddon registers a new addon into the platform having:
+//
+// * Email of the addon owner
+//
+// * Password of the addon owner
+//
+// * Addon manifest json file in []byte format
+//
+// Returns the just registered Addon
+// and an error if request does not success.
+func (api *API) RegisterAddon(email string, password string, data []byte) (*Addon, error) {
+	request := NewRequest(email, password, api)
+	data, err := request.PostAddon(data)
+	return api.decodeAddon(data, err)
+}
 
 // CreateAddon creates an addon having:
 //
