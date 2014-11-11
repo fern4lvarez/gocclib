@@ -73,14 +73,31 @@ import (
 	ms "github.com/mitchellh/mapstructure"
 )
 
+// Api is an interface than defines basic HTTP
+// methods for a REST API compatible with the
+// cloudControl platform
+type Api interface {
+	Url() string
+	Token() Tokenizer
+	TokenSourceUrl() string
+	RegisterAddonUrl() string
+	Cache() string
+
+	Get(resource string) (interface{}, error)
+	Post(resource string, data url.Values) (interface{}, error)
+	Put(resource string, data url.Values) (interface{}, error)
+	Delete(resource string) error
+}
+
 // An API is the entity that make calls and manage
-// the cloudControl interface.
+// the cloudControl programming interface.
+// It implements the Api interface.
 type API struct {
-	Cache            string
-	Url              string
-	Token            *Token
-	TokenSourceUrl   string
-	RegisterAddonUrl string
+	cache            string
+	url              string
+	token            *Token
+	tokenSourceUrl   string
+	registerAddonUrl string
 }
 
 // NewAPI creates a default new API instance.
@@ -102,7 +119,7 @@ func NewCustomAPI(url string, token *Token, tokenSourceUrl string, registerAddon
 		registerAddonUrl = url
 	}
 
-	return &API{"", url, token, tokenSourceUrl, registerAddonUrl}
+	return &API{CACHE, url, token, tokenSourceUrl, registerAddonUrl}
 }
 
 // NewAPIToken creates an API instance from a token.
@@ -113,7 +130,32 @@ func NewAPIToken(token *Token) *API {
 
 	tokenSourceUrl := fmt.Sprintf("%s%s", API_URL, "/token/")
 
-	return &API{"", API_URL, token, tokenSourceUrl, API_URL}
+	return &API{CACHE, API_URL, token, tokenSourceUrl, API_URL}
+}
+
+// Cache returns the API Cache
+func (api *API) Cache() string {
+	return api.cache
+}
+
+// Url returns the API Url
+func (api *API) Url() string {
+	return api.url
+}
+
+// SetUrl sets the API Url
+func (api *API) SetUrl(apiUrl string) {
+	api.url = apiUrl
+}
+
+// Token returns the API Token
+func (api *API) Token() Tokenizer {
+	return api.token
+}
+
+// SetToken sets a token to an API.
+func (api *API) SetToken(t *Token) {
+	api.token = t
 }
 
 // RequiresToken returns an error if API has no token.
@@ -143,7 +185,7 @@ func (api *API) CreateTokenFromFile(filepath string) (err error) {
 // a email and password.
 // Returns an error if there is any problem creating the token.
 func (api *API) CreateToken(email string, password string) (err error) {
-	request := NewRequest(email, password, api.Url, nil, api.TokenSourceUrl)
+	request := NewRequest(email, password, api)
 	content, err := request.PostToken()
 	if err != nil {
 		return err
@@ -160,26 +202,31 @@ func (api *API) CreateToken(email string, password string) (err error) {
 
 // CheckToken returns true if api has a token.
 func (api API) CheckToken() bool {
-	if api.Token == nil {
+	if api.Token() == nil {
 		return false
 	}
 
 	return true
 }
 
-// SetToken sets a token to an api.
-func (api *API) SetToken(t *Token) {
-	api.Token = t
+// Token returns the API Token Source URL
+func (api *API) TokenSourceUrl() string {
+	return api.tokenSourceUrl
 }
 
 // Set TokenSourceUrl sets the Token source URL to an api
 func (api *API) SetTokenSourceUrl(tokenSourceUrl string) {
-	api.TokenSourceUrl = tokenSourceUrl
+	api.tokenSourceUrl = tokenSourceUrl
+}
+
+// Token returns the API Register Addon URL
+func (api *API) RegisterAddonUrl() string {
+	return api.registerAddonUrl
 }
 
 // Set RegisterAddonUrl sets the URL for regostering an addon to an api
 func (api *API) SetRegisterAddonUrl(registerAddonUrl string) {
-	api.RegisterAddonUrl = registerAddonUrl
+	api.registerAddonUrl = registerAddonUrl
 }
 
 /*
@@ -1044,7 +1091,7 @@ func (api *API) Get(resource string) (interface{}, error) {
 		return nil, err
 	}
 
-	request := NewRequest("", "", api.Url, api.Token, "")
+	request := NewRequest("", "", api)
 
 	content, err := request.Get(resource)
 	if err != nil {
@@ -1063,7 +1110,7 @@ func (api *API) Post(resource string, data url.Values) (interface{}, error) {
 		return nil, err
 	}
 
-	request := NewRequest("", "", api.Url, api.Token, "")
+	request := NewRequest("", "", api)
 
 	content, err := request.Post(resource, data)
 	if err != nil {
@@ -1082,7 +1129,7 @@ func (api *API) Put(resource string, data url.Values) (interface{}, error) {
 		return nil, err
 	}
 
-	request := NewRequest("", "", api.Url, api.Token, "")
+	request := NewRequest("", "", api)
 
 	content, err := request.Put(resource, data)
 	if err != nil {
@@ -1100,7 +1147,7 @@ func (api *API) Delete(resource string) error {
 		return err
 	}
 
-	request := NewRequest("", "", api.Url, api.Token, "")
+	request := NewRequest("", "", api)
 
 	content, err := request.Delete(resource)
 	if err != nil {
