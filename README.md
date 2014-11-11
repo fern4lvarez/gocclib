@@ -23,6 +23,11 @@ $ go test -v ./...
 Usage
 -----
 
+### Basic API methods
+
+`cclib` provides multiple defined methods to interact with
+the cloudControl API.
+
 ~~~go
 package main
 
@@ -78,6 +83,38 @@ func main() {
   fmt.Println(john.Username, "was added to", myapp.Name)
 }
 ~~~
+
+### Make custom requests
+
+Beside of all given API methods, you can create your own
+request by providing the API resource and data:
+
+~~~go
+import "net/url"
+...
+data := url.Values{}
+data.Add("name", "staging")
+resource := fmt.Sprintf("/app/%s/deployment/", "newapp")
+anotherNewDeployment, _ := api.Post(resource, data)
+~~~
+
+### Use a custom API
+
+It is possible to create an API instance with custom values:
+
+~~~go
+api := cc.NewCustomAPI("https://myapi.com",
+                       &myToken,
+                       "https://myapitokensource.com",
+                       "https://myaddons.com")
+~~~
+
+Questions?
+----------
+
+If you have questions, found a bug or want to contribute,
+please [submit an issue](https://github.com/fern4lvarez/gocclib/issues/new)
+or send an email to some of the [authors](https://github.com/fern4lvarez/gocclib/blob/master/AUTHORS.md).
 
 ##License
 ----------
