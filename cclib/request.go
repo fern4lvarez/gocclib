@@ -71,22 +71,22 @@ func (request *Request) SetCaCerts(caCerts *x509.CertPool) {
 
 // Post makes a POST request
 func (request Request) Post(resource string, data url.Values) ([]byte, error) {
-	return request.do(resource, "POST", data, false)
+	return request.do(resource, "POST", []byte(data.Encode()), false)
 }
 
 // Get makes a GET request
 func (request Request) Get(resource string) ([]byte, error) {
-	return request.do(resource, "GET", url.Values{}, false)
+	return request.do(resource, "GET", []byte{}, false)
 }
 
 // Put makes a PUT request
 func (request Request) Put(resource string, data url.Values) ([]byte, error) {
-	return request.do(resource, "PUT", data, false)
+	return request.do(resource, "PUT", []byte(data.Encode()), false)
 }
 
 // Delete makes a DELETE request
 func (request Request) Delete(resource string) ([]byte, error) {
-	return request.do(resource, "DELETE", url.Values{}, false)
+	return request.do(resource, "DELETE", []byte{}, false)
 }
 
 // PostToken makes a POST request to the token source URL
@@ -94,7 +94,7 @@ func (request Request) PostToken() ([]byte, error) {
 	return request.do("", "POST", nil, true)
 }
 
-func (request Request) do(resource string, method string, data url.Values, isTokenReq bool) ([]byte, error) {
+func (request Request) do(resource string, method string, data []byte, isTokenReq bool) ([]byte, error) {
 	request_url := request.Api.Url()
 	if isTokenReq {
 		request_url = request.Api.TokenSourceUrl()
@@ -118,7 +118,7 @@ func (request Request) do(resource string, method string, data url.Values, isTok
 	}
 	client := &http.Client{Transport: tr}
 
-	r, err := http.NewRequest(method, urlStr, bytes.NewBufferString(data.Encode()))
+	r, err := http.NewRequest(method, urlStr, bytes.NewBuffer(data))
 	if err != nil {
 		return nil, err
 	}
@@ -133,7 +133,7 @@ func (request Request) do(resource string, method string, data url.Values, isTok
 	if m := strings.ToUpper(method); m == "POST" || m == "PUT" {
 		r.Header.Add("Content-Type", "application/x-www-form-urlencoded")
 	}
-	r.Header.Add("Content-Length", strconv.Itoa(len(data.Encode())))
+	r.Header.Add("Content-Length", strconv.Itoa(len(data)))
 	r.Header.Add("Accept-Encoding", "compress, gzip")
 
 	if DEBUG {
