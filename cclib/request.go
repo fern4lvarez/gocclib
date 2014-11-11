@@ -71,35 +71,46 @@ func (request *Request) SetCaCerts(caCerts *x509.CertPool) {
 
 // Post makes a POST request
 func (request Request) Post(resource string, data url.Values) ([]byte, error) {
-	return request.do(resource, "POST", []byte(data.Encode()), false)
+	return request.do(resource, "POST", []byte(data.Encode()), false, false)
 }
 
 // Get makes a GET request
 func (request Request) Get(resource string) ([]byte, error) {
-	return request.do(resource, "GET", []byte{}, false)
+	return request.do(resource, "GET", []byte{}, false, false)
 }
 
 // Put makes a PUT request
 func (request Request) Put(resource string, data url.Values) ([]byte, error) {
-	return request.do(resource, "PUT", []byte(data.Encode()), false)
+	return request.do(resource, "PUT", []byte(data.Encode()), false, false)
 }
 
 // Delete makes a DELETE request
 func (request Request) Delete(resource string) ([]byte, error) {
-	return request.do(resource, "DELETE", []byte{}, false)
+	return request.do(resource, "DELETE", []byte{}, false, false)
 }
 
 // PostToken makes a POST request to the token source URL
 func (request Request) PostToken() ([]byte, error) {
-	return request.do("", "POST", nil, true)
+	return request.do("", "POST", nil, true, false)
 }
 
-func (request Request) do(resource string, method string, data []byte, isTokenReq bool) ([]byte, error) {
-	request_url := request.Api.Url()
-	if isTokenReq {
-		request_url = request.Api.TokenSourceUrl()
-	}
+// PostToken makes a POST request to the register add-on URL
+func (request Request) PostAddon(data []byte) ([]byte, error) {
+	return request.do("", "POST", data, false, true)
+}
 
+func (request Request) doUrl(isTokenReq bool, isAddonReq bool) string {
+	switch {
+	case isTokenReq:
+		return request.Api.TokenSourceUrl()
+	case isAddonReq:
+		return request.Api.RegisterAddonUrl()
+	}
+	return request.Api.Url()
+}
+
+func (request Request) do(resource string, method string, data []byte, isTokenReq bool, isAddonReq bool) ([]byte, error) {
+	request_url := request.doUrl(isTokenReq, isAddonReq)
 	u, err := url.ParseRequestURI(request_url)
 	if err != nil {
 		return nil, err
@@ -131,7 +142,11 @@ func (request Request) do(resource string, method string, data []byte, isTokenRe
 	r.Header.Add("Host", u.Host)
 	r.Header.Add("User-Agent", "gocclib/"+Version())
 	if m := strings.ToUpper(method); m == "POST" || m == "PUT" {
-		r.Header.Add("Content-Type", "application/x-www-form-urlencoded")
+		contentType := "application/x-www-form-urlencoded"
+		if isJSONData(data) {
+			contentType = "application/json"
+		}
+		r.Header.Add("Content-Type", contentType)
 	}
 	r.Header.Add("Content-Length", strconv.Itoa(len(data)))
 	r.Header.Add("Accept-Encoding", "compress, gzip")

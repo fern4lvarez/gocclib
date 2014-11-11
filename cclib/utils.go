@@ -107,3 +107,9 @@ func isNil(value interface{}) bool {
 
 	return false
 }
+
+func isJSONData(data []byte) bool {
+	var js interface{}
+	err := json.Unmarshal(data, &js)
+	return err == nil
+}
