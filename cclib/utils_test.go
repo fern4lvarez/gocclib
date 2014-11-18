@@ -7,6 +7,7 @@ import (
 	"errors"
 	"io/ioutil"
 	"net/http"
+	"net/url"
 	"os"
 	"reflect"
 	"testing"
@@ -161,5 +162,46 @@ func TestBuildTimestamp(t *testing.T) {
 	if ts != tsExpected {
 		t.Errorf(msgFail, "buildTimestamp", tsExpected, ts)
 	}
+}
 
+func TestIsNil(t *testing.T) {
+	// Given
+	var value interface{} = nil
+	expectedResponse := true
+
+	// When
+	isNilResponse := isNil(value)
+
+	// Then
+	if isNilResponse != expectedResponse {
+		t.Errorf(msgFail, "isNil", expectedResponse, isNilResponse)
+	}
+}
+
+func TestIsJsonData(t *testing.T) {
+	// Given
+	data := []byte(`{"foo":"bar"}`)
+	expectedResponse := true
+
+	// When
+	isJsonDataResponse := isJSONData(data)
+
+	// Then
+	if isJsonDataResponse != expectedResponse {
+		t.Errorf(msgFail, "isJsonData", expectedResponse, isJsonDataResponse)
+	}
+
+	// Given
+	dataUrl := url.Values{}
+	dataUrl.Add("foo", "var")
+	data = []byte(dataUrl.Encode())
+	expectedResponse = false
+
+	// When
+	isJsonDataResponse = isJSONData(data)
+
+	// Then
+	if isJsonDataResponse != expectedResponse {
+		t.Errorf(msgFail, "isJsonData", expectedResponse, isJsonDataResponse)
+	}
 }

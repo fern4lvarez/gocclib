@@ -4,6 +4,15 @@ import (
 	"encoding/json"
 )
 
+// Tokenizer is an interface for
+// the authentication Token
+// provided by the cloudControl platform
+type Tokenizer interface {
+	Decode([]byte) error
+	Encode() ([]byte, error)
+	Key() string
+}
+
 // Token is the generated security and temporal token
 type Token map[string]string
 
