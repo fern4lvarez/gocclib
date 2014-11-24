@@ -16,7 +16,8 @@ func TestRequest(t *testing.T) {
 	api := &API{
 		url: "https://api.com",
 		token: &Token{
-			"token": "1234567890",
+			Key:     "1234567890",
+			Expires: "2222-3333",
 		},
 		tokenSourceUrl: "https://api.com/token/",
 	}
