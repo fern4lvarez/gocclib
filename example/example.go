@@ -27,8 +27,8 @@ func main() {
 	}
 	fmt.Println(john.Username, "is active.")
 
-	// Basic authentication to API
-	err = api.CreateTokenFromFile("filepath")
+	// Basic authentication to API using email and password
+	err = api.CreateToken(john.Email, "secret")
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)

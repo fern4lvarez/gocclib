@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"crypto/tls"
 	"crypto/x509"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -89,6 +90,13 @@ func (request Request) Delete(resource string) ([]byte, error) {
 	return request.do(resource, "DELETE", []byte{}, false, false)
 }
 
+// HeadToken makes an auth HEAD request to a regular
+// endpoint to check if token is still valid
+func (request Request) HeadToken() error {
+	_, err := request.do("/user/", "HEAD", nil, false, false)
+	return err
+}
+
 // PostToken makes a POST request to the token source URL
 func (request Request) PostToken() ([]byte, error) {
 	return request.do("", "POST", nil, true, false)
@@ -135,10 +143,13 @@ func (request Request) do(resource string, method string, data []byte, isTokenRe
 	}
 
 	if !isNil(request.Api.Token()) {
-		r.Header.Add("Authorization", "cc_auth_token=\""+request.Api.Token().Key()+"\"")
+		r.Header.Add("Authorization", "cc_auth_token=\""+request.Api.Token().Key+"\"")
 	} else if request.Email != "" && request.Password != "" {
 		r.SetBasicAuth(request.Email, request.Password)
+	} else {
+		return nil, errors.New("Request not authorized.")
 	}
+
 	r.Header.Add("Host", u.Host)
 	r.Header.Add("User-Agent", "gocclib/"+Version())
 	if m := strings.ToUpper(method); m == "POST" || m == "PUT" {

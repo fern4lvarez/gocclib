@@ -33,8 +33,8 @@ Basic usage example:
 		}
 		fmt.Println(john.Username, "is active.")
 
-		// Basic authentication to API
-		err = api.CreateTokenFromFile("filepath")
+		// Basic authentication to API using email and password
+		err = api.CreateToken(john.Email, "secret")
 		if err != nil {
 			fmt.Println(err)
 			os.Exit(1)
@@ -78,7 +78,7 @@ import (
 // cloudControl platform
 type Api interface {
 	Url() string
-	Token() Tokenizer
+	Token() *Token
 	TokenSourceUrl() string
 	RegisterAddonUrl() string
 	Cache() string
@@ -102,7 +102,7 @@ type API struct {
 
 // NewAPI creates a default new API instance.
 func NewAPI() *API {
-	return NewAPIToken(nil)
+	return NewAPIToken("")
 }
 
 // NewCustomAPI create a new API instance with custom values.
@@ -123,9 +123,15 @@ func NewCustomAPI(url string, token *Token, tokenSourceUrl string, registerAddon
 }
 
 // NewAPIToken creates an API instance from a token.
-func NewAPIToken(token *Token) *API {
+func NewAPIToken(t string) *API {
+	var token *Token
+
 	if api_url := os.Getenv("CCTRL_API_URL"); api_url != "" {
 		API_URL = api_url
+	}
+
+	if t != "" {
+		token = NewToken(t, "")
 	}
 
 	tokenSourceUrl := fmt.Sprintf("%s%s", API_URL, "/token/")
@@ -149,29 +155,51 @@ func (api *API) SetUrl(apiUrl string) {
 }
 
 // Token returns the API Token
-func (api *API) Token() Tokenizer {
+func (api *API) Token() *Token {
 	return api.token
 }
 
-// SetToken sets a token to an API.
-func (api *API) SetToken(t *Token) {
-	api.token = t
+// SetToken sets a Token to an API given a string token.
+func (api *API) SetToken(token string, expires string) {
+	api.token = NewToken(token, expires)
 }
 
 // RequiresToken returns an error if API has no token.
 func (api API) RequiresToken() (e error) {
-	if !api.CheckToken() {
+	if isNil(api.Token()) {
 		e = errors.New("Token required.")
 	}
 	return
 }
 
+// IsTokenValid returns true if current API
+// token is still valid and false if it is
+// expired. Return false and an error if something
+// went wrong.
+// Note: In case of valid token, this method
+// refresh the token expiral date in 15 more minutes.
+func (api API) IsTokenValid() (bool, error) {
+	if isNil(api.Token()) {
+		return false, errors.New("Token is not set.")
+	}
+
+	request := NewRequest("", "", &api)
+	if err := request.HeadToken(); err != nil {
+		if err.Error() == "401 UNAUTHORIZED" {
+			return false, nil
+		}
+		return false, err
+	}
+
+	return true, nil
+}
+
 // CreateTokenFromFile creates a token for an api from
-// a credential file's path.
+// a credentials file's path.
 //
-// This file must contain two lines, first for the password and
+// This file must contain two lines, first for the user email and
 // second for the password. Returns an error if credentials file
-// is not OK or if there is problems creating a token.
+// is not OK or if there were problems creating a token.
 func (api *API) CreateTokenFromFile(filepath string) (err error) {
 	email, password, err := readCredentialsFile(filepath)
 	if err != nil {
@@ -196,17 +224,8 @@ func (api *API) CreateToken(email string, password string) (err error) {
 		return err
 	}
 
-	api.SetToken(&token)
+	api.SetToken(token.Key, token.Expires)
 	return
-}
-
-// CheckToken returns true if api has a token.
-func (api API) CheckToken() bool {
-	if api.Token() == nil {
-		return false
-	}
-
-	return true
 }
 
 // Token returns the API Token Source URL
