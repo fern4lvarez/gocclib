@@ -164,6 +164,10 @@ func (api *API) SetToken(token string, expires string) {
 	api.token = NewToken(token, expires)
 }
 
+func (api *API) ClearToken() {
+	api.token = nil
+}
+
 // RequiresToken returns an error if API has no token.
 func (api API) RequiresToken() (e error) {
 	if isNil(api.Token()) {
