@@ -71,33 +71,33 @@ type BillingAccount struct {
 
 // Deployment contains information about a deployment
 type Deployment struct {
-	Name string `mapstructure:"name"`
+	Name string `mapstructure:"name",json:"name",yaml:"name"`
 	// Id follows the format `depxxxxxxxx`
-	Id               string         `mapstructure:"dep_id"`
-	DefaultSubdomain string         `mapstructure:"default_subdomain"`
-	Users            []User         `mapstructure:"users"`
-	Stack            Stack          `mapstructure:"stack"`
-	BilledAddons     []BilledAddon  `mapstructure:"billed_addons""`
-	Version          string         `mapstructure:"version"`
-	IsDefault        bool           `mapstructure:"is_default"`
-	BilledBoxes      Boxes          `mapstructure:"boxes"`
-	BillingAccount   BillingAccount `mapstructure:"billing_account"`
-	State            string         `mapstructure:"state"`
+	Id               string         `mapstructure:"dep_id",json:"dep_id",yaml:"dep_id"`
+	DefaultSubdomain string         `mapstructure:"default_subdomain",json:"default_subdomain,omitempty",yaml:"default_subdomain,omitempty"`
+	Users            []User         `mapstructure:"users",json:"users,omitempty",yaml:"users,omitempty"`
+	Stack            Stack          `mapstructure:"stack",json:"stack,omitempty",yaml:"stack,omitempty"`
+	BilledAddons     []BilledAddon  `mapstructure:"billed_addons"",json:"billed_addons,omitempty",yaml:"billed_addons,omitempty"`
+	Version          string         `mapstructure:"version",json:"version,omitempty",yaml:"version,omitempty"`
+	IsDefault        bool           `mapstructure:"is_default",json:"is_default,omitempty",yaml:"is_default,omitempty"`
+	BilledBoxes      Boxes          `mapstructure:"boxes",json:"boxes,omitempty",yaml:"boxes,omitempty"`
+	BillingAccount   BillingAccount `mapstructure:"billing_account",json:"billing_account,omitempty",yaml:"billing_account,omitempty"`
+	State            string         `mapstructure:"state",json:"state,omitempty",yaml:"state,omitempty"`
 	// Containers mean the number of containers running per deployment
-	Containers int `mapstructure:"min_boxes"`
+	Containers int `mapstructure:"min_boxes",json:"min_boxes,omitempty",yaml:"min_boxes,omitempty"`
 	// Size of the container memory: 1->128MB, 2->256MB, ..., 8 -> 1024MB
-	Size int `mapstructure:"max_boxes"`
+	Size int `mapstructure:"max_boxes",json:"max_boxes,omitempty",yaml:"max_boxes,omitempty"`
 }
 
 // Application contains information about an application
 type Application struct {
-	Name  string          `mapstructure:"name"`
-	Type  ApplicationType `mapstructure:"type"`
-	Owner Owner           `mapstructure:"owner"`
+	Name  string          `mapstructure:"name",json:"name",yaml:"name"`
+	Type  ApplicationType `mapstructure:"type",json:"type",yaml:"type"`
+	Owner Owner           `mapstructure:"owner",json:"owner,omitempty",yaml:"owner,omitempty"`
 	// BuildpackUrl is empty unless Type is `custom`
-	BuildpackUrl string       `mapstructure:"buildpack_url"`
-	Users        []User       `mapstructure:"users"`
-	Deployments  []Deployment `mapstructure:"deployments"`
+	BuildpackUrl string       `mapstructure:"buildpack_url",json:"buildpack_url,omitempty",yaml:"buildpack_url,omitempty"`
+	Users        []User       `mapstructure:"users",json:"users,omitempty",yaml:"users,omitempty"`
+	Deployments  []Deployment `mapstructure:"deployments",json:"deployments",yaml:"deployments"`
 }
 
 // Alias contains information about a deployment alias
